@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор флешкарт - SmartScroll</title>
+    <link rel="stylesheet" href="unified-navbar.css">
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Button Audio System -->
+    <script src="button-audio.js"></script>
+    
+    <style>
+        /* Специфичные стили для генератора флешкарт */
+        .flashcard-generator {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .upload-section {
+            background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .input-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .input-tab {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .input-tab.active {
+            color: #30CAA1;
+            border-bottom-color: #30CAA1;
+        }
+        
+        .input-tab:hover {
+            color: #30CAA1;
+        }
+        
+        .text-input-section {
+            display: none;
+        }
+        
+        .text-input-section.active {
+            display: block;
+        }
+        
+        .text-input-area {
+            width: 100%;
+            min-height: 200px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .text-input-area:focus {
+            outline: none;
+            border-color: #30CAA1;
+            box-shadow: 0 0 10px rgba(48, 202, 161, 0.3);
+        }
+        
+        .text-input-area::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .text-input-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            justify-content: flex-end;
+        }
+        
+        .text-input-btn {
+            background: linear-gradient(135deg, #30CAA1 0%, #20A0FF 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .text-input-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(48, 202, 161, 0.4);
+        }
+        
+        .text-input-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .text-input-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .upload-section h2 {
+            color: #30CAA1;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .upload-area {
+            border: 2px dashed rgba(48, 202, 161, 0.3);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: rgba(48, 202, 161, 0.05);
+        }
+        
+        .upload-area:hover {
+            border-color: #30CAA1;
+            background: rgba(48, 202, 161, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .upload-area.dragover {
+            border-color: #30CAA1;
+            background: rgba(48, 202, 161, 0.15);
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #30CAA1;
+        }
+        
+        .upload-text {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .upload-subtext {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-btn {
+            background: linear-gradient(135deg, #30CAA1 0%, #20A0FF 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(48, 202, 161, 0.4);
+        }
+        
+        .material-preview {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .material-preview h3 {
+            color: #30CAA1;
+            margin-bottom: 15px;
+        }
+        
+        .material-content {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            line-height: 1.6;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .generate-section {
+            background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .generate-section h2 {
+            color: #30CAA1;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .generate-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .option-group {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .option-group label {
+            color: #30CAA1;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .option-group select,
+        .option-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+        }
+        
+        .option-group select:focus,
+        .option-group input:focus {
+            outline: none;
+            border-color: #30CAA1;
+            box-shadow: 0 0 10px rgba(48, 202, 161, 0.3);
+        }
+        
+        .generate-btn {
+            background: linear-gradient(135deg, #30CAA1 0%, #20A0FF 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(48, 202, 161, 0.4);
+        }
+        
+        .generate-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .flashcards-section {
+            background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .flashcards-section h2 {
+            color: #30CAA1;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .flashcards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .flashcard {
+            background: linear-gradient(145deg, #2a2a2a, #1e1e1e);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-height: 200px;
+            height: 200px;
+        }
+        
+        .flashcard:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border-color: #30CAA1;
+        }
+        
+        .flashcard {
+            perspective: 1000px;
+        }
+        
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .flashcard-front,
+        .flashcard-back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+        
+        .flashcard-question {
+            color: #30CAA1;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+        
+        .flashcard-answer {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            line-height: 1.6;
+            text-align: center;
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+        
+        .flashcard-category {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(48, 202, 161, 0.2);
+            color: #30CAA1;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 10;
+        }
+        
+        .flashcard-actions {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+        
+        .flashcard-action {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .flashcard-action:hover {
+            background: rgba(48, 202, 161, 0.3);
+            color: #30CAA1;
+            transform: scale(1.1);
+        }
+        
+        .no-flashcards {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .no-flashcards-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        
+        /* Стили для NLP квиза */
+        .nlp-quiz-section {
+            background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .nlp-quiz-section h2 {
+            color: #ff6b6b;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .nlp-quiz-controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .nlp-quiz-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+        }
+        
+        .quiz-progress {
+            margin-bottom: 30px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .quiz-question {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .question-text {
+            color: #30CAA1;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .question-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .question-option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            line-height: 1.4;
+        }
+        
+        .question-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #30CAA1;
+            transform: translateX(5px);
+        }
+        
+        .question-option.selected {
+            background: rgba(48, 202, 161, 0.2);
+            border-color: #30CAA1;
+            color: #30CAA1;
+        }
+        
+        .question-option.correct {
+            background: rgba(46, 204, 113, 0.2);
+            border-color: #2ecc71;
+            color: #2ecc71;
+        }
+        
+        .question-option.incorrect {
+            background: rgba(231, 76, 60, 0.2);
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+        
+        .quiz-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .quiz-btn {
+            background: linear-gradient(135deg, #30CAA1 0%, #20A0FF 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .quiz-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(48, 202, 161, 0.4);
+        }
+        
+        .quiz-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .quiz-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .quiz-results {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .quiz-results h3 {
+            color: #30CAA1;
+            margin-bottom: 25px;
+            font-size: 22px;
+        }
+        
+        .results-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            color: #30CAA1;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .results-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            .flashcard-generator {
+                padding: 15px;
+            }
+            
+            .upload-section,
+            .generate-section,
+            .flashcards-section,
+            .nlp-quiz-section {
+                padding: 20px;
+            }
+            
+            .generate-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .flashcards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .results-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .quiz-actions,
+            .results-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+        }
+    </style>
+</head>
+<body>
+    <!-- Загрузка единого навбара -->
+    <div id="navbar-container"></div>
+    
+    <div class="page content-with-navbar">
+        <div class="flashcard-generator">
+            <!-- Секция загрузки материала -->
+            <div class="upload-section">
+                <h2>📚 Загрузите материал для изучения</h2>
+                
+                <!-- Вкладки для выбора способа ввода -->
+                <div class="input-tabs">
+                    <button class="input-tab active" onclick="switchInputMode('file')">
+                        📁 Загрузить файл
+                    </button>
+                    <button class="input-tab" onclick="switchInputMode('text')">
+                        ✏️ Ввести текст
+                    </button>
+                </div>
+                
+                <!-- Секция загрузки файла -->
+                <div class="file-input-section active" id="fileInputSection">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">📄</div>
+                        <div class="upload-text">Перетащите файл сюда или нажмите для выбора</div>
+                        <div class="upload-subtext">Поддерживаются: PDF, TXT, DOC, DOCX, MD</div>
+                        <input type="file" id="fileInput" class="file-input" accept=".pdf,.txt,.doc,.docx,.md">
+                        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                            Выбрать файл
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Секция ввода текста -->
+                <div class="text-input-section" id="textInputSection">
+                    <textarea 
+                        class="text-input-area" 
+                        id="textInput" 
+                        placeholder="Введите или вставьте текст для создания флешкарт. Вы можете вставить текст из любого источника: учебники, статьи, лекции, заметки и т.д."
+                    ></textarea>
+                    <div class="text-input-actions">
+                        <button class="text-input-btn secondary" onclick="clearTextInput()">
+                            🗑️ Очистить
+                        </button>
+                        <button class="text-input-btn" onclick="processTextInput()">
+                            ✅ Использовать текст
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="material-preview" id="materialPreview">
+                    <h3>Предварительный просмотр материала</h3>
+                    <div class="material-content" id="materialContent"></div>
+                </div>
+            </div>
+            
+            <!-- Секция настроек генерации -->
+            <div class="generate-section">
+                <h2>⚙️ Настройки генерации флешкарт</h2>
+                <div class="generate-options">
+                    <div class="option-group">
+                        <label for="cardCount">Количество карточек</label>
+                        <select id="cardCount">
+                            <option value="5">5 карточек</option>
+                            <option value="10" selected>10 карточек</option>
+                            <option value="15">15 карточек</option>
+                            <option value="20">20 карточек</option>
+                            <option value="25">25 карточек</option>
+                        </select>
+                    </div>
+                    
+                    <div class="option-group">
+                        <label for="difficulty">Сложность</label>
+                        <select id="difficulty">
+                            <option value="beginner">Начальный</option>
+                            <option value="intermediate" selected>Средний</option>
+                            <option value="advanced">Продвинутый</option>
+                        </select>
+                    </div>
+                    
+                    <div class="option-group">
+                        <label for="cardType">Тип карточек</label>
+                        <select id="cardType">
+                            <option value="definition">Определения</option>
+                            <option value="question" selected>Вопросы и ответы</option>
+                            <option value="concept">Концепции</option>
+                            <option value="mixed">Смешанный</option>
+                        </select>
+                    </div>
+                    
+                    <div class="option-group">
+                        <label for="language">Язык</label>
+                        <select id="language">
+                            <option value="ru" selected>Русский</option>
+                            <option value="en">English</option>
+                            <option value="mixed">Смешанный</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="generate-btn" id="generateBtn" onclick="generateFlashcards()">
+                    <span id="generateText">🎯 Сгенерировать флешкарты</span>
+                    <div class="loading-spinner" id="loadingSpinner" style="display: none;"></div>
+                </button>
+                
+                <!-- Кнопка для тестирования -->
+                <button class="generate-btn" onclick="testFlashcards()" style="margin-top: 10px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);">
+                    🧪 Тестовые флешкарты
+                </button>
+            </div>
+            
+            <!-- Секция NLP квиза -->
+            <div class="nlp-quiz-section">
+                <h2>🧠 NLP Квиз по материалу</h2>
+                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 20px;">
+                    Интерактивный квиз, который анализирует ваш материал с помощью NLP и создает умные вопросы
+                </p>
+                
+                <div class="nlp-quiz-controls">
+                    <button class="generate-btn" id="startNlpQuizBtn" onclick="startNlpQuiz()" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);">
+                        🧠 Начать NLP квиз
+                    </button>
+                </div>
+                
+                <div class="nlp-quiz-container" id="nlpQuizContainer" style="display: none;">
+                    <div class="quiz-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="quizProgress"></div>
+                        </div>
+                        <div class="progress-text" id="progressText">Вопрос 1 из 5</div>
+                    </div>
+                    
+                    <div class="quiz-question" id="quizQuestion">
+                        <!-- Вопросы будут генерироваться динамически -->
+                    </div>
+                    
+                    <div class="quiz-actions">
+                        <button class="quiz-btn secondary" onclick="skipQuestion()">⏭️ Пропустить</button>
+                        <button class="quiz-btn" onclick="submitAnswer()" id="submitBtn">✅ Ответить</button>
+                    </div>
+                </div>
+                
+                <div class="quiz-results" id="quizResults" style="display: none;">
+                    <h3>🎯 Результаты квиза</h3>
+                    <div class="results-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Правильных ответов:</span>
+                            <span class="stat-value" id="correctAnswers">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Всего вопросов:</span>
+                            <span class="stat-value" id="totalQuestions">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Процент:</span>
+                            <span class="stat-value" id="quizPercentage">0%</span>
+                        </div>
+                    </div>
+                    <div class="results-actions">
+                        <button class="quiz-btn" onclick="restartQuiz()">🔄 Пройти еще раз</button>
+                        <button class="quiz-btn secondary" onclick="generateFlashcardsFromQuiz()">🃏 Создать флешкарты</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Секция отображения флешкарт -->
+            <div class="flashcards-section">
+                <h2>🃏 Ваши флешкарты</h2>
+                <div class="flashcards-grid" id="flashcardsGrid">
+                    <div class="no-flashcards" id="noFlashcards">
+                        <div class="no-flashcards-icon">🃏</div>
+                        <div>Загрузите материал и сгенерируйте флешкарты</div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Загрузка скриптов -->
+    <script src="unified-navbar.js"></script>
+    <script src="script.js"></script>
+    
+    <script>
+        // Глобальные переменные
+        let uploadedMaterial = null;
+        let generatedFlashcards = [];
+        
+        // Переменные для NLP квиза
+        let nlpQuizQuestions = [];
+        let currentQuestionIndex = 0;
+        let quizAnswers = [];
+        let quizScore = 0;
+        
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOM загружен, инициализация...');
+            initializeFlashcardGenerator();
+        });
+        
+        // Дополнительная проверка через небольшую задержку
+        setTimeout(() => {
+            console.log('🔍 Проверка элементов после загрузки...');
+            const grid = document.getElementById('flashcardsGrid');
+            const noFlashcards = document.getElementById('noFlashcards');
+            console.log('Grid после загрузки:', grid);
+            console.log('NoFlashcards после загрузки:', noFlashcards);
+        }, 1000);
+        
+        function initializeFlashcardGenerator() {
+            console.log('🚀 Инициализация генератора флешкарт');
+            
+            // Проверяем наличие всех необходимых элементов
+            checkRequiredElements();
+            
+            // Загружаем единый навбар
+            loadUnifiedNavbar();
+            
+            // Инициализируем загрузку файлов
+            initializeFileUpload();
+            
+            // Инициализируем текстовый ввод
+            initializeTextInput();
+            
+            console.log('✅ Генератор флешкарт инициализирован');
+        }
+        
+        function checkRequiredElements() {
+            const requiredElements = [
+                'flashcardsGrid',
+                'noFlashcards',
+                'generateBtn',
+                'textInput',
+                'fileInput'
+            ];
+            
+            requiredElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    console.log(`✅ Элемент ${id} найден`);
+                } else {
+                    console.error(`❌ Элемент ${id} НЕ найден!`);
+                }
+            });
+        }
+        
+        function loadUnifiedNavbar() {
+            fetch('unified-navbar.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('navbar-container').innerHTML = html;
+                    // Инициализируем навбар после загрузки
+                    if (typeof initializeNavbar === 'function') {
+                        initializeNavbar();
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка загрузки единого навбара:', error);
+                });
+        }
+        
+        function initializeFileUpload() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            
+            // Обработка перетаскивания файлов
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileUpload(files[0]);
+                }
+            });
+            
+            // Обработка выбора файла
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileUpload(e.target.files[0]);
+                }
+            });
+        }
+        
+        function handleFileUpload(file) {
+            console.log('📁 Загружен файл:', file.name);
+            
+            // Проверяем тип файла
+            const allowedTypes = [
+                'application/pdf',
+                'text/plain',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'text/markdown'
+            ];
+            
+            if (!allowedTypes.includes(file.type) && !file.name.endsWith('.md')) {
+                alert('Неподдерживаемый тип файла. Пожалуйста, выберите PDF, TXT, DOC, DOCX или MD файл.');
+                return;
+            }
+            
+            // Читаем содержимое файла
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                uploadedMaterial = {
+                    name: file.name,
+                    type: file.type,
+                    content: content,
+                    size: file.size
+                };
+                
+                // Показываем предварительный просмотр
+                showMaterialPreview(content);
+            };
+            
+            if (file.type === 'text/plain' || file.name.endsWith('.md')) {
+                reader.readAsText(file);
+            } else {
+                // Для PDF и DOC файлов показываем сообщение о необходимости обработки
+                uploadedMaterial = {
+                    name: file.name,
+                    type: file.type,
+                    content: null,
+                    size: file.size
+                };
+                showMaterialPreview('Файл загружен. Для обработки PDF и DOC файлов требуется дополнительная настройка сервера.');
+            }
+        }
+        
+        function showMaterialPreview(content) {
+            const preview = document.getElementById('materialPreview');
+            const contentDiv = document.getElementById('materialContent');
+            
+            if (content && content.length > 1000) {
+                content = content.substring(0, 1000) + '...';
+            }
+            
+            contentDiv.textContent = content;
+            preview.style.display = 'block';
+        }
+        
+        // Функции для переключения между режимами ввода
+        function switchInputMode(mode) {
+            const fileTab = document.querySelector('.input-tab[onclick*="file"]');
+            const textTab = document.querySelector('.input-tab[onclick*="text"]');
+            const fileSection = document.getElementById('fileInputSection');
+            const textSection = document.getElementById('textInputSection');
+            
+            // Обновляем активные вкладки
+            fileTab.classList.toggle('active', mode === 'file');
+            textTab.classList.toggle('active', mode === 'text');
+            
+            // Показываем/скрываем соответствующие секции
+            fileSection.classList.toggle('active', mode === 'file');
+            textSection.classList.toggle('active', mode === 'text');
+        }
+        
+        // Инициализация текстового ввода
+        function initializeTextInput() {
+            const textInput = document.getElementById('textInput');
+            
+            // Автоматическое изменение размера textarea
+            textInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.max(200, this.scrollHeight) + 'px';
+            });
+            
+            // Обработка вставки текста
+            textInput.addEventListener('paste', function(e) {
+                setTimeout(() => {
+                    this.style.height = 'auto';
+                    this.style.height = Math.max(200, this.scrollHeight) + 'px';
+                }, 10);
+            });
+        }
+        
+        // Обработка текстового ввода
+        function processTextInput() {
+            const textInput = document.getElementById('textInput');
+            const text = textInput.value.trim();
+            
+            if (!text) {
+                alert('Пожалуйста, введите текст для создания флешкарт.');
+                return;
+            }
+            
+            if (text.length < 50) {
+                alert('Текст слишком короткий. Пожалуйста, введите более подробный материал (минимум 50 символов).');
+                return;
+            }
+            
+            console.log('📝 Обработка текстового ввода:', text.length, 'символов');
+            
+            // Сохраняем материал
+            uploadedMaterial = {
+                name: 'Введенный текст',
+                type: 'text/plain',
+                content: text,
+                size: text.length
+            };
+            
+            // Показываем предварительный просмотр
+            showMaterialPreview(text);
+            
+            // Показываем уведомление об успехе
+            showNotification('✅ Текст успешно загружен! Теперь вы можете сгенерировать флешкарты.', 'success');
+        }
+        
+        // Очистка текстового ввода
+        function clearTextInput() {
+            const textInput = document.getElementById('textInput');
+            textInput.value = '';
+            textInput.style.height = '200px';
+            
+            // Очищаем материал если он был из текстового ввода
+            if (uploadedMaterial && uploadedMaterial.name === 'Введенный текст') {
+                uploadedMaterial = null;
+                document.getElementById('materialPreview').style.display = 'none';
+            }
+        }
+        
+        // Показ уведомлений
+        function showNotification(message, type = 'info') {
+            // Создаем элемент уведомления
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? 'linear-gradient(135deg, #30CAA1, #20A0FF)' : 'linear-gradient(135deg, #ff6b6b, #ee5a24)'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                z-index: 1000;
+                font-weight: 600;
+                max-width: 300px;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            
+            // Добавляем анимацию
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(notification);
+            
+            // Автоматически удаляем через 3 секунды
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        async function generateFlashcards() {
+            if (!uploadedMaterial) {
+                alert('Пожалуйста, сначала загрузите материал для изучения.');
+                return;
+            }
+            
+            const generateBtn = document.getElementById('generateBtn');
+            const generateText = document.getElementById('generateText');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            
+            // Показываем индикатор загрузки
+            generateBtn.disabled = true;
+            generateText.style.display = 'none';
+            loadingSpinner.style.display = 'inline-block';
+            
+            try {
+                // Получаем настройки генерации
+                const settings = {
+                    cardCount: document.getElementById('cardCount').value,
+                    difficulty: document.getElementById('difficulty').value,
+                    cardType: document.getElementById('cardType').value,
+                    language: document.getElementById('language').value
+                };
+                
+                console.log('🎯 Генерация флешкарт с настройками:', settings);
+                
+                // Симулируем генерацию флешкарт (в реальном приложении здесь будет API вызов)
+                await simulateFlashcardGeneration(settings);
+                
+                // Показываем результат
+                displayFlashcards();
+                
+            } catch (error) {
+                console.error('Ошибка генерации флешкарт:', error);
+                alert('Произошла ошибка при генерации флешкарт. Попробуйте еще раз.');
+            } finally {
+                // Скрываем индикатор загрузки
+                generateBtn.disabled = false;
+                generateText.style.display = 'inline';
+                loadingSpinner.style.display = 'none';
+            }
+        }
+        
+        async function simulateFlashcardGeneration(settings) {
+            // Симулируем задержку API
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Определяем тип материала
+            const isTextInput = uploadedMaterial && uploadedMaterial.name === 'Введенный текст';
+            const materialContent = uploadedMaterial ? uploadedMaterial.content : '';
+            
+            let sampleFlashcards = [];
+            
+            if (isTextInput && materialContent) {
+                // Генерируем флешкарты на основе введенного текста
+                sampleFlashcards = generateFlashcardsFromText(materialContent, settings);
+            } else {
+                // Используем стандартные примеры
+                sampleFlashcards = [
+                    {
+                        id: 1,
+                        question: "Что такое машинное обучение?",
+                        answer: "Машинное обучение — это раздел искусственного интеллекта, который позволяет компьютерам учиться и принимать решения без явного программирования.",
+                        category: "ИИ",
+                        difficulty: settings.difficulty
+                    },
+                    {
+                        id: 2,
+                        question: "Какие основные типы машинного обучения существуют?",
+                        answer: "1) Обучение с учителем (supervised learning)\n2) Обучение без учителя (unsupervised learning)\n3) Обучение с подкреплением (reinforcement learning)",
+                        category: "ИИ",
+                        difficulty: settings.difficulty
+                    },
+                    {
+                        id: 3,
+                        question: "Что такое нейронная сеть?",
+                        answer: "Нейронная сеть — это вычислительная модель, вдохновленная биологическими нейронными сетями, состоящая из взаимосвязанных узлов (нейронов).",
+                        category: "Нейросети",
+                        difficulty: settings.difficulty
+                    },
+                    {
+                        id: 4,
+                        question: "Объясните принцип работы алгоритма градиентного спуска",
+                        answer: "Градиентный спуск — это алгоритм оптимизации, который итеративно корректирует параметры модели в направлении, противоположном градиенту функции потерь.",
+                        category: "Алгоритмы",
+                        difficulty: settings.difficulty
+                    },
+                    {
+                        id: 5,
+                        question: "Что такое переобучение (overfitting)?",
+                        answer: "Переобучение происходит, когда модель слишком хорошо запоминает обучающие данные и плохо обобщает на новые данные.",
+                        category: "Проблемы",
+                        difficulty: settings.difficulty
+                    }
+                ];
+            }
+            
+            // Ограничиваем количество карточек согласно настройкам
+            generatedFlashcards = sampleFlashcards.slice(0, parseInt(settings.cardCount));
+        }
+        
+        // Генерация флешкарт на основе текста
+        function generateFlashcardsFromText(text, settings) {
+            console.log('📝 Генерация флешкарт из текста:', text.length, 'символов');
+            
+            // Простая логика извлечения ключевых понятий и создания вопросов
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
+            const flashcards = [];
+            
+            // Извлекаем ключевые слова (слова с заглавной буквы или длинные слова)
+            const words = text.match(/\b[A-ZА-Я][a-zа-я]+\b|\b\w{6,}\b/g) || [];
+            const uniqueWords = [...new Set(words)].slice(0, 10);
+            
+            // Создаем флешкарты на основе предложений
+            sentences.slice(0, parseInt(settings.cardCount)).forEach((sentence, index) => {
+                if (sentence.trim().length > 30) {
+                    const words = sentence.trim().split(' ');
+                    const keyWord = words.find(w => w.length > 6) || words[Math.floor(words.length / 2)];
+                    
+                    flashcards.push({
+                        id: index + 1,
+                        question: `Что говорится о "${keyWord}" в тексте?`,
+                        answer: sentence.trim() + '.',
+                        category: "Текст",
+                        difficulty: settings.difficulty
+                    });
+                }
+            });
+            
+            // Если не хватает флешкарт, создаем на основе ключевых слов
+            if (flashcards.length < parseInt(settings.cardCount)) {
+                uniqueWords.slice(0, parseInt(settings.cardCount) - flashcards.length).forEach((word, index) => {
+                    flashcards.push({
+                        id: flashcards.length + index + 1,
+                        question: `Что означает "${word}" в контексте данного текста?`,
+                        answer: `"${word}" - ключевое понятие из текста, которое требует дополнительного изучения.`,
+                        category: "Термины",
+                        difficulty: settings.difficulty
+                    });
+                });
+            }
+            
+            return flashcards;
+        }
+        
+        function displayFlashcards() {
+            const grid = document.getElementById('flashcardsGrid');
+            const noFlashcards = document.getElementById('noFlashcards');
+            
+            console.log('🃏 Отображение флешкарт:', generatedFlashcards.length);
+            console.log('Grid элемент:', grid);
+            console.log('NoFlashcards элемент:', noFlashcards);
+            
+            if (!grid) {
+                console.error('❌ Элемент flashcardsGrid не найден!');
+                // Попробуем найти альтернативный элемент
+                const alternativeGrid = document.querySelector('.flashcards-grid');
+                if (alternativeGrid) {
+                    console.log('✅ Найден альтернативный элемент grid');
+                    alternativeGrid.innerHTML = generatedFlashcards.map(card => `
+                        <div class="flashcard" onclick="flipCard(this)">
+                            <div class="flashcard-category">${card.category}</div>
+                            <div class="flashcard-inner">
+                                <div class="flashcard-front">
+                                    <div class="flashcard-question">${card.question}</div>
+                                </div>
+                                <div class="flashcard-back">
+                                    <div class="flashcard-answer">${card.answer}</div>
+                                </div>
+                            </div>
+                            <div class="flashcard-actions">
+                                <button class="flashcard-action" onclick="editCard(${card.id})" title="Редактировать">
+                                    ✏️
+                                </button>
+                                <button class="flashcard-action" onclick="deleteCard(${card.id})" title="Удалить">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                    return;
+                }
+                return;
+            }
+            
+            if (generatedFlashcards.length === 0) {
+                if (noFlashcards) {
+                    noFlashcards.style.display = 'block';
+                }
+                return;
+            }
+            
+            if (noFlashcards) {
+                noFlashcards.style.display = 'none';
+            }
+            
+            // Логируем каждую карточку для отладки
+            generatedFlashcards.forEach((card, index) => {
+                console.log(`Карточка ${index + 1}:`, {
+                    question: card.question,
+                    answer: card.answer,
+                    category: card.category
+                });
+            });
+            
+            grid.innerHTML = generatedFlashcards.map(card => `
+                <div class="flashcard" onclick="flipCard(this)">
+                    <div class="flashcard-category">${card.category}</div>
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">
+                            <div class="flashcard-question">${card.question}</div>
+                        </div>
+                        <div class="flashcard-back">
+                            <div class="flashcard-answer">${card.answer}</div>
+                        </div>
+                    </div>
+                    <div class="flashcard-actions">
+                        <button class="flashcard-action" onclick="editCard(${card.id})" title="Редактировать">
+                            ✏️
+                        </button>
+                        <button class="flashcard-action" onclick="deleteCard(${card.id})" title="Удалить">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function flipCard(cardElement) {
+            cardElement.classList.toggle('flipped');
+        }
+        
+        // Функция для тестирования флешкарт
+        function testFlashcards() {
+            console.log('🧪 Создание тестовых флешкарт');
+            
+            generatedFlashcards = [
+                {
+                    id: 1,
+                    question: "Что такое JavaScript?",
+                    answer: "JavaScript - это язык программирования, который используется для создания интерактивных веб-страниц.",
+                    category: "Программирование",
+                    difficulty: "beginner"
+                },
+                {
+                    id: 2,
+                    question: "Как объявить переменную в JavaScript?",
+                    answer: "В JavaScript можно объявить переменную с помощью ключевых слов: var, let или const.",
+                    category: "Программирование",
+                    difficulty: "beginner"
+                },
+                {
+                    id: 3,
+                    question: "Что такое функция в программировании?",
+                    answer: "Функция - это блок кода, который выполняет определенную задачу и может быть вызван многократно.",
+                    category: "Программирование",
+                    difficulty: "intermediate"
+                }
+            ];
+            
+            displayFlashcards();
+            showNotification('🧪 Тестовые флешкарты созданы!', 'success');
+        }
+        
+        function editCard(cardId) {
+            const card = generatedFlashcards.find(c => c.id === cardId);
+            if (card) {
+                const newQuestion = prompt('Вопрос:', card.question);
+                const newAnswer = prompt('Ответ:', card.answer);
+                
+                if (newQuestion && newAnswer) {
+                    card.question = newQuestion;
+                    card.answer = newAnswer;
+                    displayFlashcards();
+                }
+            }
+        }
+        
+        function deleteCard(cardId) {
+            if (confirm('Вы уверены, что хотите удалить эту карточку?')) {
+                generatedFlashcards = generatedFlashcards.filter(c => c.id !== cardId);
+                displayFlashcards();
+            }
+        }
+        
+        // ===== NLP QUIZ FUNCTIONS =====
+        
+        async function startNlpQuiz() {
+            if (!uploadedMaterial) {
+                alert('Пожалуйста, сначала загрузите материал для изучения.');
+                return;
+            }
+            
+            console.log('🧠 Начинаем NLP квиз');
+            
+            // Показываем контейнер квиза
+            document.getElementById('nlpQuizContainer').style.display = 'block';
+            document.getElementById('quizResults').style.display = 'none';
+            
+            // Генерируем вопросы с помощью NLP
+            await generateNlpQuestions();
+            
+            // Начинаем с первого вопроса
+            currentQuestionIndex = 0;
+            quizAnswers = [];
+            quizScore = 0;
+            
+            displayCurrentQuestion();
+        }
+        
+        async function generateNlpQuestions() {
+            console.log('🔍 Генерация NLP вопросов...');
+            
+            const materialContent = uploadedMaterial.content;
+            if (!materialContent) {
+                alert('Нет материала для анализа.');
+                return;
+            }
+            
+            // Симулируем NLP анализ материала
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Генерируем умные вопросы на основе материала
+            nlpQuizQuestions = generateSmartQuestions(materialContent);
+            
+            console.log('✅ Сгенерировано вопросов:', nlpQuizQuestions.length);
+        }
+        
+        function generateSmartQuestions(text) {
+            const questions = [];
+            
+            // Извлекаем ключевые понятия
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
+            const keyWords = extractKeyWords(text);
+            
+            // Создаем вопросы разных типов
+            sentences.slice(0, 5).forEach((sentence, index) => {
+                if (sentence.trim().length > 30) {
+                    const words = sentence.trim().split(' ');
+                    const keyWord = words.find(w => w.length > 6) || words[Math.floor(words.length / 2)];
+                    
+                    // Создаем вопрос на понимание
+                    questions.push({
+                        id: index + 1,
+                        type: 'comprehension',
+                        question: `Что говорится о "${keyWord}" в данном материале?`,
+                        options: generateQuestionOptions(sentence, keyWord),
+                        correctAnswer: 0,
+                        explanation: `В тексте говорится: "${sentence.trim()}"`,
+                        source: 'comprehension'
+                    });
+                }
+            });
+            
+            // Создаем вопросы на определение терминов
+            keyWords.slice(0, 3).forEach((word, index) => {
+                questions.push({
+                    id: questions.length + 1,
+                    type: 'definition',
+                    question: `Что означает термин "${word}" в контексте данного материала?`,
+                    options: generateDefinitionOptions(word, text),
+                    correctAnswer: 0,
+                    explanation: `"${word}" - ключевое понятие, которое требует понимания в контексте материала.`,
+                    source: 'definition'
+                });
+            });
+            
+            return questions.slice(0, 5); // Ограничиваем 5 вопросами
+        }
+        
+        function extractKeyWords(text) {
+            // Простое извлечение ключевых слов
+            const words = text.match(/\b[A-ZА-Я][a-zа-я]+\b|\b\w{6,}\b/g) || [];
+            const uniqueWords = [...new Set(words)].slice(0, 10);
+            return uniqueWords;
+        }
+        
+        function generateQuestionOptions(sentence, keyWord) {
+            const options = [
+                sentence.trim() + '.', // Правильный ответ
+                `Информация о "${keyWord}" не упоминается в материале.`,
+                `"${keyWord}" упоминается только в контексте других тем.`,
+                `Детальная информация о "${keyWord}" отсутствует.`
+            ];
+            
+            // Перемешиваем варианты ответов
+            return shuffleArray(options);
+        }
+        
+        function generateDefinitionOptions(word, text) {
+            const options = [
+                `"${word}" - ключевое понятие из материала, требующее понимания.`,
+                `"${word}" - второстепенный термин, не требующий внимания.`,
+                `"${word}" - устаревшее понятие, не актуальное для изучения.`,
+                `"${word}" - технический термин, не связанный с основной темой.`
+            ];
+            
+            return shuffleArray(options);
+        }
+        
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+        
+        function displayCurrentQuestion() {
+            if (currentQuestionIndex >= nlpQuizQuestions.length) {
+                showQuizResults();
+                return;
+            }
+            
+            const question = nlpQuizQuestions[currentQuestionIndex];
+            const questionContainer = document.getElementById('quizQuestion');
+            const progressFill = document.getElementById('quizProgress');
+            const progressText = document.getElementById('progressText');
+            
+            // Обновляем прогресс
+            const progress = ((currentQuestionIndex + 1) / nlpQuizQuestions.length) * 100;
+            progressFill.style.width = progress + '%';
+            progressText.textContent = `Вопрос ${currentQuestionIndex + 1} из ${nlpQuizQuestions.length}`;
+            
+            // Отображаем вопрос
+            questionContainer.innerHTML = `
+                <div class="question-text">${question.question}</div>
+                <div class="question-options">
+                    ${question.options.map((option, index) => `
+                        <div class="question-option" onclick="selectOption(${index})" data-index="${index}">
+                            ${option}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            // Сбрасываем состояние кнопки
+            document.getElementById('submitBtn').disabled = true;
+        }
+        
+        function selectOption(optionIndex) {
+            // Убираем выделение с предыдущих вариантов
+            document.querySelectorAll('.question-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Выделяем выбранный вариант
+            const selectedOption = document.querySelector(`[data-index="${optionIndex}"]`);
+            selectedOption.classList.add('selected');
+            
+            // Сохраняем выбранный ответ
+            quizAnswers[currentQuestionIndex] = optionIndex;
+            
+            // Активируем кнопку ответа
+            document.getElementById('submitBtn').disabled = false;
+        }
+        
+        function submitAnswer() {
+            const selectedOption = document.querySelector('.question-option.selected');
+            if (!selectedOption) {
+                alert('Пожалуйста, выберите вариант ответа.');
+                return;
+            }
+            
+            const question = nlpQuizQuestions[currentQuestionIndex];
+            const selectedIndex = parseInt(selectedOption.dataset.index);
+            const isCorrect = selectedIndex === question.correctAnswer;
+            
+            // Показываем правильный ответ
+            showCorrectAnswer(question, selectedIndex, isCorrect);
+            
+            // Обновляем счет
+            if (isCorrect) {
+                quizScore++;
+            }
+            
+            // Переходим к следующему вопросу через 2 секунды
+            setTimeout(() => {
+                currentQuestionIndex++;
+                displayCurrentQuestion();
+            }, 2000);
+        }
+        
+        function showCorrectAnswer(question, selectedIndex, isCorrect) {
+            const options = document.querySelectorAll('.question-option');
+            
+            options.forEach((option, index) => {
+                option.onclick = null; // Отключаем клики
+                
+                if (index === question.correctAnswer) {
+                    option.classList.add('correct');
+                } else if (index === selectedIndex && !isCorrect) {
+                    option.classList.add('incorrect');
+                }
+            });
+            
+            // Показываем объяснение
+            const questionContainer = document.getElementById('quizQuestion');
+            const explanation = document.createElement('div');
+            explanation.style.cssText = `
+                margin-top: 20px;
+                padding: 15px;
+                background: rgba(48, 202, 161, 0.1);
+                border: 1px solid #30CAA1;
+                border-radius: 10px;
+                color: #30CAA1;
+                font-size: 14px;
+                line-height: 1.5;
+            `;
+            explanation.innerHTML = `<strong>Объяснение:</strong> ${question.explanation}`;
+            questionContainer.appendChild(explanation);
+        }
+        
+        function skipQuestion() {
+            quizAnswers[currentQuestionIndex] = -1; // Помечаем как пропущенный
+            currentQuestionIndex++;
+            displayCurrentQuestion();
+        }
+        
+        function showQuizResults() {
+            document.getElementById('nlpQuizContainer').style.display = 'none';
+            document.getElementById('quizResults').style.display = 'block';
+            
+            const totalQuestions = nlpQuizQuestions.length;
+            const percentage = Math.round((quizScore / totalQuestions) * 100);
+            
+            document.getElementById('correctAnswers').textContent = quizScore;
+            document.getElementById('totalQuestions').textContent = totalQuestions;
+            document.getElementById('quizPercentage').textContent = percentage + '%';
+            
+            // Показываем уведомление о результате
+            let message = '';
+            if (percentage >= 80) {
+                message = '🎉 Отличный результат! Вы хорошо усвоили материал!';
+            } else if (percentage >= 60) {
+                message = '👍 Хороший результат! Есть что улучшить.';
+            } else {
+                message = '📚 Рекомендуем повторить материал для лучшего понимания.';
+            }
+            
+            showNotification(message, 'success');
+        }
+        
+        function restartQuiz() {
+            document.getElementById('quizResults').style.display = 'none';
+            startNlpQuiz();
+        }
+        
+        function generateFlashcardsFromQuiz() {
+            console.log('🃏 Создание флешкарт на основе квиза');
+            
+            // Создаем флешкарты на основе вопросов квиза
+            const quizFlashcards = nlpQuizQuestions.map((question, index) => ({
+                id: index + 1,
+                question: question.question,
+                answer: question.options[question.correctAnswer],
+                category: question.type === 'comprehension' ? 'Понимание' : 'Термины',
+                difficulty: 'intermediate',
+                source: 'nlp-quiz'
+            }));
+            
+            // Добавляем к существующим флешкартам
+            generatedFlashcards = [...generatedFlashcards, ...quizFlashcards];
+            
+            // Отображаем флешкарты
+            displayFlashcards();
+            
+            showNotification('🃏 Флешкарты созданы на основе квиза!', 'success');
+        }
+        
+    </script>
+</body>
+</html>

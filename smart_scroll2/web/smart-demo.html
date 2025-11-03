@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Currency Demo - SmartScroll</title>
+    <link rel="stylesheet" href="template-styles.css">
+    
+    <!-- Единая навигация -->
+    <link rel="stylesheet" href="unified-navbar.css">
+    <script src="unified-navbar.js"></script>
+    
+    <!-- Мониторинг яркости экрана -->
+    <script src="brightness-monitor.js"></script>
+    
+    <!-- Smart Currency System -->
+    <script src="smart-currency.js"></script>
+        <!-- Button Audio System -->
+    <script src="button-audio.js"></script>
+<style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .demo-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #30CAA1 0%, #20A0FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .demo-section {
+            background: rgba(44, 44, 46, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-section h2 {
+            color: #30CAA1;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .demo-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .demo-btn {
+            background: linear-gradient(135deg, #30CAA1 0%, #20A0FF 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(48, 202, 161, 0.3);
+        }
+
+        .demo-btn.secondary {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+        }
+
+        .demo-btn.secondary:hover {
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #30CAA1;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .achievements-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .achievement-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .achievement-icon {
+            font-size: 2rem;
+        }
+
+        .achievement-info h4 {
+            margin: 0 0 5px 0;
+            color: white;
+        }
+
+        .achievement-info p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .achievement-earned {
+            border-color: #30CAA1;
+            background: rgba(48, 202, 161, 0.1);
+        }
+
+        .achievement-locked {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🧠 Smart Currency Demo</h1>
+            <p>Демонстрация игровой валюты Smart в SmartScroll</p>
+        </div>
+
+        <div class="demo-section">
+            <h2>💰 Управление Smart очками</h2>
+            <div class="demo-buttons">
+                <button class="demo-btn" onclick="addPoints(10, 'Тестовая награда')">+10 Smart</button>
+                <button class="demo-btn" onclick="addPoints(50, 'Бонус за активность')">+50 Smart</button>
+                <button class="demo-btn" onclick="addPoints(100, 'Большой бонус')">+100 Smart</button>
+                <button class="demo-btn secondary" onclick="resetPoints()">Сбросить очки</button>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>📊 Статистика</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="currentPoints">0</div>
+                    <div class="stat-label">Текущие Smart очки</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalAchievements">0</div>
+                    <div class="stat-label">Достижения</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🏆 Достижения</h2>
+            <div class="achievements-list" id="achievementsList">
+                <!-- Достижения будут загружены динамически -->
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🎮 Симуляция квиза</h2>
+            <p>Нажмите кнопки ниже, чтобы симулировать ответы на вопросы квиза:</p>
+            <div class="demo-buttons">
+                <button class="demo-btn" onclick="simulateQuizAnswer(true, 'easy')">Правильный ответ (легкий)</button>
+                <button class="demo-btn" onclick="simulateQuizAnswer(true, 'medium')">Правильный ответ (средний)</button>
+                <button class="demo-btn" onclick="simulateQuizAnswer(true, 'hard')">Правильный ответ (сложный)</button>
+                <button class="demo-btn secondary" onclick="simulateQuizAnswer(false, 'medium')">Неправильный ответ</button>
+            </div>
+            <div class="demo-buttons">
+                <button class="demo-btn" onclick="simulateQuizCompletion(8, 10)">Завершить квиз (8/10)</button>
+                <button class="demo-btn" onclick="simulateQuizCompletion(5, 10)">Завершить квиз (5/10)</button>
+                <button class="demo-btn" onclick="simulateQuizCompletion(10, 10)">Завершить квиз (10/10)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDisplay();
+            loadAchievements();
+        });
+
+        function addPoints(amount, reason) {
+            if (window.SmartCurrency) {
+                window.SmartCurrency.addPoints(amount, reason);
+                updateDisplay();
+            }
+        }
+
+        function resetPoints() {
+            if (window.SmartCurrency) {
+                window.SmartCurrency.setPoints(0);
+                updateDisplay();
+            }
+        }
+
+        function simulateQuizAnswer(isCorrect, difficulty) {
+            if (window.SmartCurrency && isCorrect) {
+                window.SmartCurrency.rewardQuizAnswer(true, difficulty);
+                updateDisplay();
+            }
+        }
+
+        function simulateQuizCompletion(score, total) {
+            if (window.SmartCurrency) {
+                window.SmartCurrency.rewardQuizCompletion(score, total);
+                updateDisplay();
+            }
+        }
+
+        function updateDisplay() {
+            if (window.SmartCurrency) {
+                const stats = window.SmartCurrency.getStats();
+                document.getElementById('currentPoints').textContent = stats.points;
+                document.getElementById('totalAchievements').textContent = stats.totalAchievements;
+            }
+        }
+
+        function loadAchievements() {
+            if (!window.SmartCurrency) return;
+
+            const achievements = [
+                {
+                    id: 'first_smart',
+                    title: 'Первые Smart очки',
+                    description: 'Заработали первые 10 Smart очков',
+                    icon: '🎯',
+                    requirement: 10
+                },
+                {
+                    id: 'smart_collector',
+                    title: 'Собиратель Smart',
+                    description: 'Заработали 100 Smart очков',
+                    icon: '💰',
+                    requirement: 100
+                },
+                {
+                    id: 'smart_master',
+                    title: 'Мастер Smart',
+                    description: 'Заработали 500 Smart очков',
+                    icon: '👑',
+                    requirement: 500
+                },
+                {
+                    id: 'smart_legend',
+                    title: 'Легенда Smart',
+                    description: 'Заработали 1000 Smart очков',
+                    icon: '🏆',
+                    requirement: 1000
+                }
+            ];
+
+            const earnedAchievements = window.SmartCurrency.getAchievements();
+            const currentPoints = window.SmartCurrency.getPoints();
+
+            const achievementsList = document.getElementById('achievementsList');
+            achievementsList.innerHTML = '';
+
+            achievements.forEach(achievement => {
+                const isEarned = earnedAchievements.some(a => a.id === achievement.id);
+                const isUnlocked = currentPoints >= achievement.requirement;
+
+                const card = document.createElement('div');
+                card.className = `achievement-card ${isEarned ? 'achievement-earned' : (isUnlocked ? '' : 'achievement-locked')}`;
+                
+                card.innerHTML = `
+                    <div class="achievement-icon">${achievement.icon}</div>
+                    <div class="achievement-info">
+                        <h4>${achievement.title}</h4>
+                        <p>${achievement.description}</p>
+                        <small>Требуется: ${achievement.requirement} Smart</small>
+                    </div>
+                `;
+
+                achievementsList.appendChild(card);
+            });
+        }
+    </script>
+    
+    <!-- Единый навбар -->
+    <div id="unified-navbar-container"></div>
+    
+    <!-- Загрузка единого навбара -->
+    <script>
+        // Загружаем единый навбар
+        fetch('unified-navbar.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('unified-navbar-container').innerHTML = html;
+                // Инициализируем навбар после загрузки
+                if (window.initializeNavbar) {
+                    window.initializeNavbar();
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки единого навбара:', error);
+            });
+    </script>
+</body>
+</html>

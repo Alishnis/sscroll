@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Scroll - Лента рекомендации</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="unified-navbar.css">
+    <script src="unified-navbar.js"></script>
+    
+    <!-- Мониторинг яркости экрана -->
+    <script src="brightness-monitor.js"></script>
+    
+    <!-- Auth system -->
+    <script src="auth-script.js"></script>
+    
+    <!-- TTS Service -->
+    <script src="tts-simple.js"></script>
+    
+    <!-- Button Audio System -->
+    <script src="button-audio.js"></script>
+    
+    <style>
+        /* Новый современный навбар */
+        .modern-navbar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(145deg, rgba(20, 20, 20, 0.95), rgba(30, 30, 30, 0.95));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 8px;
+            z-index: 1000;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            max-width: 90vw;
+            width: auto;
+        }
+
+        .modern-navbar__container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .modern-navbar__item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 18px;
+            position: relative;
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            min-width: 60px;
+            background: transparent;
+            overflow: hidden;
+        }
+
+        .modern-navbar__item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(145deg, rgba(0, 212, 255, 0.1), rgba(0, 150, 200, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 18px;
+        }
+
+        .modern-navbar__item:hover {
+            color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .modern-navbar__item:hover::before {
+            opacity: 1;
+        }
+
+        .modern-navbar__item--active {
+            color: #00d4ff !important;
+            background: linear-gradient(145deg, rgba(0, 212, 255, 0.15), rgba(0, 150, 200, 0.15)) !important;
+            box-shadow: 
+                0 4px 15px rgba(0, 212, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .modern-navbar__item--active::before {
+            opacity: 1;
+        }
+
+        .modern-navbar__icon-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+        }
+
+        .modern-navbar__icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+            transition: all 0.3s ease;
+        }
+
+        .modern-navbar__item:hover .modern-navbar__icon {
+            transform: scale(1.1);
+        }
+
+        .modern-navbar__item--active .modern-navbar__icon {
+            fill: #00d4ff !important;
+            transform: scale(1.05);
+        }
+
+        .modern-navbar__label {
+            font-size: 10px;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.2;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+        }
+
+        .modern-navbar__item--active .modern-navbar__label {
+            color: #00d4ff !important;
+        }
+
+        /* Анимации */
+        @keyframes navbarItemPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .modern-navbar__item--active {
+            animation: navbarItemPulse 2s ease-in-out infinite;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .modern-navbar {
+                bottom: 10px;
+                padding: 6px;
+                border-radius: 20px;
+            }
+            
+            .modern-navbar__item {
+                padding: 8px 6px;
+                min-width: 50px;
+            }
+            
+            .modern-navbar__icon {
+                width: 18px;
+                height: 18px;
+            }
+            
+            .modern-navbar__label {
+                font-size: 9px;
+            }
+        }
+    </style>
+    
+    <style>
+        /* Smart Currency Display */
+        .smart-currency-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #30CAA1 0%, #20A0FF 100%);
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(48, 202, 161, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .smart-currency-display:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(48, 202, 161, 0.4);
+        }
+
+        .smart-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .smart-amount {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .smart-text {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        /* Feed container styles with snap scroll */
+        .feed-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            width: 100%;
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            scroll-padding-top: 0;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .video-section {
+            height: 100vh;
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            position: relative;
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Ensure proper snap behavior */
+        .video-section:first-child {
+            scroll-snap-align: start;
+        }
+        
+        .video-section:last-child {
+            scroll-snap-align: end;
+        }
+        
+        /* Sticky panels */
+        .video-panels {
+            position: sticky;
+            top: 40%;
+            transform: translateY(-50%);
+            height: fit-content;
+            align-self: flex-start;
+        }
+        
+        .video-card {
+            background: #2E3136;
+            border: 0.5px solid #EEEEEE;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            flex: 1;
+            max-width: 70%;
+        }
+        
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Video panels */
+        .video-panels {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 80px;
+            flex-shrink: 0;
+        }
+        
+        .panel-item {
+            width: 60px;
+            height: 60px;
+            background: rgba(46, 49, 54, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .panel-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .panel-item.active {
+            background: linear-gradient(135deg, #30CAA1 0%, #20A0FF 100%);
+            box-shadow: 0 4px 16px rgba(48, 202, 161, 0.4);
+        }
+        
+        .panel-icon {
+            width: 24px;
+            height: 24px;
+            color: #FFFFFF;
+            transition: all 0.2s ease;
+        }
+        
+        .panel-item:hover .panel-icon {
+            transform: scale(1.1);
+        }
+        
+        /* Global Panel */
+        .global-panel {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%) translateX(calc(100% + 20px));
+            width: 400px;
+            max-height: 80vh;
+            background: #2C2C2E;
+            border: 1px solid #E0E0E0;
+            border-radius: 12px;
+            padding: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+        
+        .global-panel.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) translateX(0);
+        }
+        
+        /* Panel header */
+        .panel-header {
+            background: #212123;
+            padding: 16px 20px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .panel-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .panel-close-btn {
+            background: none;
+            border: none;
+            color: #FFFFFF;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .panel-close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .panel-header-icon {
+            width: 20px;
+            height: 20px;
+            color: #FFFFFF;
+        }
+        
+        .panel-header-title {
+            color: #FFFFFF;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        /* Panel body */
+        .panel-body {
+            padding: 20px;
+            max-height: calc(80vh - 80px);
+            overflow-y: auto;
+        }
+        
+        .panel-content p {
+            color: #FFFFFF;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0 0 16px 0;
+        }
+        
+        .panel-content textarea {
+            width: 100%;
+            min-height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #FFFFFF;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            outline: none;
+            font-family: inherit;
+            padding: 12px;
+        }
+        
+        .panel-content textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Quiz styles */
+        .quiz-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .quiz-container h3 {
+            color: #FFFFFF;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .quiz-container p {
+            color: #FFFFFF;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .quiz-options label {
+            display: flex;
+            align-items: center;
+            color: #FFFFFF;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .quiz-options label:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .quiz-options input[type="radio"] {
+            margin-right: 10px;
+            accent-color: #30CAA1;
+        }
+        
+        .quiz-explanation {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(48, 202, 161, 0.1);
+            border: 1px solid rgba(48, 202, 161, 0.3);
+            border-radius: 6px;
+            color: #FFFFFF;
+            font-size: 14px;
+        }
+        
+        .quiz-explanation strong {
+            color: #30CAA1;
+        }
+        
+        .quiz-check-btn {
+            background: linear-gradient(135deg, #30CAA1 0%, #20A0FF 100%);
+            color: #FFFFFF;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .quiz-check-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(48, 202, 161, 0.4);
+        }
+        
+        .video-player {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: #000;
+        }
+        
+        .video-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .video-info {
+            padding: 16px;
+        }
+        
+        .video-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #FFFFFF;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        
+        .video-description {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        
+        .video-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+        }
+
+        .video-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 12px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #30CAA1;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: white;
+            font-size: 18px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            color: #ff6b6b;
+            text-align: center;
+        }
+
+        /* Исправление позиционирования контента */
+        .main {
+            padding-top: 0 !important;
+        }
+        
+        .page {
+            padding-top: 0 !important;
+        }
+        
+        .feed-container {
+            margin-top: 0 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="header__title">SmartScroll</h1>
+            <div class="header__search">
+                <input type="text" id="searchInput" placeholder="Поиск видео..." class="search-input" value="programming">
+                <button onclick="performVideoSearch()" class="search-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="search-icon">
+                        <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+            <div class="header__right">
+                <div id="smartCurrencyDisplay" class="smart-currency-display">
+                    <span class="smart-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span>
+                    <span class="smart-amount">0</span>
+                    <span class="smart-text">Smart</span>
+                </div>
+                <div class="header__logo">
+                    <img src="template-logo.png" alt="Smart Scroll Logo" class="header__logo-icon">
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <div class="content">
+                <!-- Main Content Area -->
+        <div class="main-content">
+                    
+                    <!-- Feed Container -->
+                    <div id="feedContainer" class="feed-container" style="padding-top: 80px;">
+            <!-- Videos will be loaded here -->
+            </div>
+            
+        <!-- Global Panels -->
+        <div class="global-panel" id="globalPanel">
+            <div class="panel-header">
+                <div class="panel-header-left">
+                    <svg class="panel-header-icon" id="panelIcon" viewBox="0 0 24 24" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625ZM7.5 15a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 7.5 15Zm.75 2.25a.75.75 0 0 0 0 1.5H12a.75.75 0 0 0 0-1.5H8.25Z" clip-rule="evenodd" />
+                        <path d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z" />
+                    </svg>
+                    <h3 class="panel-header-title" id="panelTitle">Содержание</h3>
+                </div>
+                <button class="panel-close-btn" onclick="closeAllPanels()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+            <div class="panel-body" id="panelBody">
+                <p>Здесь будет краткое содержание видео с основными темами и ключевыми моментами.</p>
+            </div>
+        </div>
+    </div>
+            </div>
+                </div>
+        </main>
+
+    </div>
+
+    <script src="smart-currency.js"></script>
+    <script src="template-script.js"></script>
+    
+    <!-- Загрузка единого навбара -->
+    <script>
+        // Загружаем единый навбар
+        fetch('unified-navbar.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('unified-navbar-container').innerHTML = html;
+                // Инициализируем навбар после загрузки
+                if (window.initializeNavbar) {
+                    window.initializeNavbar();
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки единого навбара:', error);
+            });
+    </script>
+
+    <script>
+        // API ключи (не храните реальные ключи в репозитории)
+        const YOUTUBE_API_KEY = 'YOUR_YOUTUBE_API_KEY';
+        const OPENAI_API_KEY = 'YOUR_OPENAI_API_KEY';
+        
+        // Принудительный mock режим (для тестирования)
+        const FORCE_MOCK_MODE = false;
+        
+        let currentQuery = 'programming';
+        
+        // Загружаем видео при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            loadVideos(currentQuery);
+        });
+        
+        async function loadVideos(query) {
+            const feedContainer = document.getElementById('feedContainer');
+            feedContainer.innerHTML = '<div class="loading"><div><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="animation: spin 1s linear infinite; margin-right: 8px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>Загружаем видео...</div></div>';
+
+            // Принудительный mock режим
+            if (FORCE_MOCK_MODE) {
+                console.log('Принудительный mock режим включен');
+                loadMockVideos(query);
+                return;
+            }
+
+            try {
+                // Реальный поиск через YouTube API
+                const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=10&key=${YOUTUBE_API_KEY}`;
+                
+                console.log('Searching with URL:', searchUrl);
+                console.log('API Key:', YOUTUBE_API_KEY);
+                
+                const response = await fetch(searchUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error Response:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+                }
+                
+                const searchData = await response.json();
+                
+                if (!searchData.items || searchData.items.length === 0) {
+                    feedContainer.innerHTML = '<div class="error"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg>Видео не найдены</div>';
+                    return;
+                }
+                
+                // Получаем статистику для каждого видео
+                const videoIds = searchData.items.map(item => item.id.videoId).join(',');
+                const statsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoIds}&key=${YOUTUBE_API_KEY}`;
+                
+                const statsResponse = await fetch(statsUrl);
+                const statsData = await statsResponse.json();
+                
+                // Объединяем данные поиска и статистики
+                const videosWithStats = searchData.items.map(video => {
+                    const stats = statsData.items.find(item => item.id === video.id.videoId);
+                    return {
+                        id: video.id,
+                        snippet: video.snippet,
+                        statistics: stats ? stats.statistics : null
+                    };
+                });
+                
+                displayVideos(videosWithStats);
+                
+            } catch (error) {
+                console.error('Ошибка загрузки видео:', error);
+                
+                // Показываем более детальную информацию об ошибке
+                let errorMessage = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg>Ошибка загрузки видео';
+                if (error.message.includes('400')) {
+                    errorMessage += '<br><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>Проблема с API ключом YouTube';
+                } else if (error.message.includes('403')) {
+                    if (error.message.includes('quota')) {
+                        errorMessage += '<br><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Превышена квота YouTube API';
+                        errorMessage += '<br><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>Попробуйте позже или используйте другой API ключ';
+                    } else {
+                        errorMessage += '<br><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg>Доступ запрещен к YouTube API';
+                    }
+                } else if (error.message.includes('CORS')) {
+                    errorMessage += '<br><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>Проблема с CORS';
+                } else {
+                    errorMessage += '<br><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>Проверьте подключение к интернету';
+                }
+                
+                feedContainer.innerHTML = `<div class="error">${errorMessage}</div>`;
+                
+                // Загружаем mock данные при ошибке
+                console.log('Загружаем mock данные из-за ошибки');
+                loadMockVideos(query);
+            }
+        }
+        
+        // Mock данные для демонстрации при превышении квоты
+        function loadMockVideos(query) {
+            const feedContainer = document.getElementById('feedContainer');
+            feedContainer.innerHTML = '<div class="loading"><div><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="animation: spin 1s linear infinite; margin-right: 8px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>Загружаем демо-видео...</div></div>';
+            
+            // Mock данные с популярными образовательными видео
+            const mockVideos = [
+                {
+                    id: { videoId: 'dQw4w9WgXcQ' },
+                    snippet: {
+                        title: 'Программирование для начинающих - Полный курс',
+                        description: 'Изучите основы программирования с нуля. Этот курс покрывает все основные концепции программирования.',
+                        thumbnails: {
+                            medium: { url: 'https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg' }
+                        },
+                        channelTitle: 'Tech Education'
+                    },
+                    statistics: { viewCount: '1250000', likeCount: '45000' }
+                },
+                {
+                    id: { videoId: 'jNQXAC9IVRw' },
+                    snippet: {
+                        title: 'Искусственный интеллект и машинное обучение',
+                        description: 'Введение в мир ИИ и машинного обучения. Практические примеры и кейсы.',
+                        thumbnails: {
+                            medium: { url: 'https://img.youtube.com/vi/jNQXAC9IVRw/mqdefault.jpg' }
+                        },
+                        channelTitle: 'AI Academy'
+                    },
+                    statistics: { viewCount: '890000', likeCount: '32000' }
+                },
+                {
+                    id: { videoId: 'L_jWHffIx5E' },
+                    snippet: {
+                        title: 'Веб-разработка: HTML, CSS, JavaScript',
+                        description: 'Полное руководство по созданию современных веб-сайтов. От основ до продвинутых техник.',
+                        thumbnails: {
+                            medium: { url: 'https://img.youtube.com/vi/L_jWHffIx5E/mqdefault.jpg' }
+                        },
+                        channelTitle: 'Web Dev Master'
+                    },
+                    statistics: { viewCount: '2100000', likeCount: '78000' }
+                }
+            ];
+            
+            // Добавляем уведомление о mock режиме
+            const mockNotice = document.createElement('div');
+            mockNotice.className = 'mock-notice';
+            mockNotice.innerHTML = `
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 10px; border-radius: 5px; text-align: center;">
+                    <strong><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Демо-режим</strong><br>
+                    YouTube API квота превышена. Показаны демонстрационные видео.<br>
+                    <small>Для реальных данных обновите API ключ в Google Cloud Console</small>
+                </div>
+            `;
+            feedContainer.innerHTML = '';
+            feedContainer.appendChild(mockNotice);
+            
+            displayVideos(mockVideos);
+        }
+        
+        function displayVideos(videos) {
+            const feedContainer = document.getElementById('feedContainer');
+            feedContainer.innerHTML = '';
+            
+            videos.forEach((video, index) => {
+                const videoSection = createVideoSection(video, index);
+                feedContainer.appendChild(videoSection);
+            });
+        }
+        
+        function createVideoSection(video, index) {
+            const section = document.createElement('div');
+            section.className = 'video-section';
+            section.id = `video-section-${index}`;
+            
+            const videoId = video.id.videoId;
+            const snippet = video.snippet;
+            const statistics = video.statistics;
+            
+            // Форматируем реальные данные
+            const views = statistics ? formatNumber(statistics.viewCount) : 'N/A';
+            const likes = statistics ? formatNumber(statistics.likeCount) : 'N/A';
+            
+            section.innerHTML = `
+                <div class="video-card">
+                <div class="video-player">
+                    <iframe 
+                        class="video-iframe"
+                        src="https://www.youtube.com/embed/${videoId}?autoplay=0&controls=1&rel=0&modestbranding=1&showinfo=0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                <div class="video-info">
+                        <h3 class="video-title">${snippet.title}</h3>
+                        <p class="video-description">${snippet.description}</p>
+                    <div class="video-stats">
+                            <div class="stat-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z" />
+                                    <path fill-rule="evenodd" d="M1.5 12C1.5 5.385 6.385.5 13 .5S24.5 5.385 24.5 12 19.615 23.5 13 23.5 1.5 18.615 1.5 12ZM13 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z" clip-rule="evenodd" />
+                                </svg>
+                                ${views} просмотров
+                        </div>
+                            <div class="stat-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 0 1 6 15.375c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V3a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558-.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23h-.777ZM2.331 10.977a11.969 11.969 0 0 0-.831 4.398 12 12 0 0 0 .52 3.507c.26.85 1.084 1.368 1.973 1.368H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 0 1-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227Z" />
+                                </svg>
+                                ${likes} лайков
+                        </div>
+                        </div>
+                        <div class="video-actions">
+                            <button class="action-btn" onclick="openOriginalVideo('${videoId}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;"><path d="M8 5v14l11-7z"/></svg>YouTube</button>
+                            <button class="action-btn" onclick="shareVideo('${videoId}', '${snippet.title}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>Поделиться</button>
+                            <button class="action-btn" onclick="getVideoSummary('${videoId}', '${snippet.title}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/></svg>Содержание</button>
+                        </div>
+                        </div>
+                        </div>
+                
+                <div class="video-panels">
+                    <div class="panel-item" data-panel="summary" onclick="togglePanel(${index}, 'summary')">
+                        <svg class="panel-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625ZM7.5 15a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 7.5 15Zm.75 2.25a.75.75 0 0 0 0 1.5H12a.75.75 0 0 0 0-1.5H8.25Z" clip-rule="evenodd" />
+                            <path d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z" />
+                        </svg>
+                    </div>
+                    
+                    <div class="panel-item" data-panel="notes" onclick="togglePanel(${index}, 'notes')">
+                        <svg class="panel-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z" />
+                        </svg>
+                    </div>
+                    
+                    <div class="panel-item" data-panel="quiz" onclick="togglePanel(${index}, 'quiz')">
+                        <svg class="panel-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16.5 6a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v7.5a3 3 0 0 0 3 3v-6A4.5 4.5 0 0 1 10.5 6h6Z" />
+                            <path d="M18 7.5a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3h-7.5a3 3 0 0 1-3-3v-7.5a3 3 0 0 1 3-3H18Z" />
+                        </svg>
+                    </div>
+                </div>
+            `;
+            
+            return section;
+        }
+        
+        function formatNumber(num) {
+            if (!num) return '0';
+            
+            const number = parseInt(num);
+            if (number >= 1000000) {
+                return (number / 1000000).toFixed(1) + 'M';
+            } else if (number >= 1000) {
+                return (number / 1000).toFixed(1) + 'K';
+            }
+                return number.toString();
+        }
+        
+        // Поиск видео
+        function performVideoSearch() {
+            const searchInput = document.getElementById('searchInput');
+            if (!searchInput) {
+                console.error('Поле поиска не найдено');
+                alert('Ошибка: поле поиска не найдено');
+                return;
+            }
+            
+            const query = searchInput.value.trim();
+            console.log('🔍 Поиск видео по запросу:', query);
+            console.log('📝 Значение поля:', searchInput.value);
+            console.log('📝 Обрезанное значение:', query);
+            
+            if (!query) {
+                console.log('❌ Запрос пустой');
+                alert('Пожалуйста, введите запрос для поиска');
+                return;
+            }
+            
+            console.log('✅ Запрос не пустой, запускаем поиск видео');
+            currentQuery = query;
+            loadVideos(query);
+        }
+        
+        // Алиас для совместимости
+        function performSearch() {
+            console.log('🔄 Вызвана performSearch, перенаправляем на performVideoSearch');
+            performVideoSearch();
+        }
+        
+        // Поиск по Enter
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        console.log('⌨️ Нажата клавиша Enter в feed.html');
+                        performVideoSearch();
+                    }
+                });
+                console.log('✅ Обработчик Enter добавлен к полю поиска в feed.html');
+            } else {
+                console.error('❌ Поле поиска не найдено для добавления обработчика Enter в feed.html');
+            }
+        });
+        
+        // Функции для кнопок видео
+        
+        // Открыть оригинальное видео на YouTube
+        function openOriginalVideo(videoId) {
+            const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+            window.open(youtubeUrl, '_blank');
+        }
+        
+        // Поделиться видео
+        function shareVideo(videoId, title) {
+            const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    url: youtubeUrl
+                });
+            } else {
+                // Fallback - копируем в буфер обмена
+                navigator.clipboard.writeText(youtubeUrl).then(() => {
+                    alert('Ссылка скопирована в буфер обмена!');
+                });
+            }
+        }
+        
+        // Получить содержание видео
+        async function getVideoSummary(videoId, title) {
+            try {
+                // Генерируем демонстрационное содержание
+                const summary = generateStructuredSummary(title);
+                    displaySummary(summary);
+            } catch (error) {
+                console.error('Ошибка получения содержания:', error);
+                alert('Ошибка получения содержания видео');
+            }
+        }
+        
+        // Генерация структурированного демонстрационного содержания
+        function generateStructuredSummary(title) {
+            const topics = {
+                'programming': {
+                    main: 'Программирование и разработка',
+                    points: [
+                        'Основы программирования и алгоритмы',
+                        'Структуры данных и их применение',
+                        'Объектно-ориентированное программирование',
+                        'Практические проекты и кейсы',
+                        'Лучшие практики разработки'
+                    ]
+                },
+                'javascript': {
+                    main: 'JavaScript разработка',
+                    points: [
+                        'Синтаксис и основы JavaScript',
+                        'DOM манипуляции и события',
+                        'Асинхронное программирование',
+                        'Современные фреймворки (React, Vue)',
+                        'Тестирование и отладка'
+                    ]
+                },
+                'python': {
+                    main: 'Python программирование',
+                    points: [
+                        'Основы Python и синтаксис',
+                        'Работа с данными и библиотеки',
+                        'Веб-разработка с Django/Flask',
+                        'Машинное обучение и AI',
+                        'Автоматизация и скрипты'
+                    ]
+                },
+                'tutorial': {
+                    main: 'Обучающий контент',
+                    points: [
+                        'Пошаговые инструкции',
+                        'Практические примеры',
+                        'Советы и рекомендации',
+                        'Частые ошибки и их решения',
+                        'Дополнительные ресурсы'
+                    ]
+                }
+            };
+            
+            // Определяем тему на основе заголовка
+            let topic = 'programming';
+            const titleLower = title.toLowerCase();
+            if (titleLower.includes('javascript')) topic = 'javascript';
+            else if (titleLower.includes('python')) topic = 'python';
+            else if (titleLower.includes('web') || titleLower.includes('веб')) topic = 'web';
+            else if (titleLower.includes('tutorial')) topic = 'tutorial';
+            
+            const data = topics[topic];
+            
+            return `**${data.main}**
+
+**Основные темы:**
+${data.points.map(point => `• ${point}`).join('\n')}
+
+**Ключевые выводы:**
+• Практический подход к изучению
+• Современные технологии и инструменты
+• Реальные проекты и кейсы
+• Лучшие практики индустрии
+
+**Полезные ссылки:**
+• Документация и ресурсы
+• Дополнительные материалы
+• Сообщество разработчиков`;
+        }
+        
+        // Функция для удаления markdown форматирования
+        function stripMarkdown(text) {
+            if (!text) return '';
+            
+            return text
+                // Удаляем заголовки (##, ###, ####)
+                .replace(/^#{1,6}\s+/gm, '')
+                // Удаляем жирный текст (**text** или __text__)
+                .replace(/\*\*(.*?)\*\*/g, '$1')
+                .replace(/__(.*?)__/g, '$1')
+                // Удаляем курсив (*text* или _text_)
+                .replace(/\*(.*?)\*/g, '$1')
+                .replace(/_(.*?)_/g, '$1')
+                // Удаляем зачеркнутый текст (~~text~~)
+                .replace(/~~(.*?)~~/g, '$1')
+                // Удаляем код (`code`)
+                .replace(/`(.*?)`/g, '$1')
+                // Удаляем ссылки [text](url)
+                .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+                // Удаляем маркеры списков (-, *, +)
+                .replace(/^[\s]*[-*+]\s+/gm, '• ')
+                // Удаляем нумерованные списки (1., 2., etc.)
+                .replace(/^[\s]*\d+\.\s+/gm, '• ')
+                // Очищаем лишние пробелы
+                .replace(/\n\s*\n/g, '\n')
+                .trim();
+        }
+
+        // Отображение содержания
+        function displaySummary(summary) {
+            const summaryCard = document.getElementById('summaryCard');
+            const summaryText = summaryCard.querySelector('.summary-card__text');
+            const cleanSummary = stripMarkdown(summary);
+            summaryText.innerHTML = cleanSummary.replace(/\n/g, '<br>');
+            toggleSidebar('content');
+        }
+        
+        // Panel functionality
+        function togglePanel(videoIndex, panelType) {
+            const globalPanel = document.getElementById('globalPanel');
+            const panelIcon = document.getElementById('panelIcon');
+            const panelTitle = document.getElementById('panelTitle');
+            const panelBody = document.getElementById('panelBody');
+            
+            // Close panel first
+            closeAllPanels();
+            
+            // Update panel content based on type
+            if (panelType === 'summary') {
+                panelTitle.textContent = 'Содержание';
+                panelIcon.innerHTML = `
+                    <path fill-rule="evenodd" d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625ZM7.5 15a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 7.5 15Zm.75 2.25a.75.75 0 0 0 0 1.5H12a.75.75 0 0 0 0-1.5H8.25Z" clip-rule="evenodd" />
+                    <path d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z" />
+                `;
+                // Show global panel first, then load content
+                globalPanel.classList.add('active');
+                loadSummaryContent(videoIndex);
+            } else if (panelType === 'notes') {
+                panelTitle.textContent = 'Заметки';
+                panelIcon.innerHTML = `
+                    <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z" />
+                `;
+                panelBody.innerHTML = '<textarea placeholder="Добавьте свои заметки к этому видео..."></textarea>';
+            } else if (panelType === 'quiz') {
+                panelTitle.textContent = 'Квиз';
+                panelIcon.innerHTML = `
+                    <path d="M16.5 6a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v7.5a3 3 0 0 0 3 3v-6A4.5 4.5 0 0 1 10.5 6h6Z" />
+                    <path d="M18 7.5a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3h-7.5a3 3 0 0 1-3-3v-7.5a3 3 0 0 1 3-3H18Z" />
+                `;
+                // Show global panel first, then load quiz
+                globalPanel.classList.add('active');
+                loadQuizContent(videoIndex);
+            }
+            
+            // Show global panel (if not already shown for summary)
+            if (panelType !== 'summary') {
+                globalPanel.classList.add('active');
+            }
+            
+            // Highlight active panel item
+            const targetItem = document.querySelector(`#video-section-${videoIndex} [data-panel="${panelType}"]`);
+            if (targetItem) {
+                targetItem.classList.add('active');
+            }
+        }
+        
+        function closeAllPanels() {
+            const globalPanel = document.getElementById('globalPanel');
+            const allPanelItems = document.querySelectorAll('.panel-item');
+            
+            globalPanel.classList.remove('active');
+            
+            allPanelItems.forEach(item => {
+                item.classList.remove('active');
+            });
+        }
+        
+        async function loadSummaryContent(videoIndex) {
+            const videoSection = document.getElementById(`video-section-${videoIndex}`);
+            const videoTitle = videoSection.querySelector('.video-title').textContent;
+            const videoDescription = videoSection.querySelector('.video-description').textContent;
+            const panelBody = document.getElementById('panelBody');
+            
+            // Show loading state
+            if (panelBody) {
+                panelBody.innerHTML = '<p>🤖 Генерируем содержание видео...</p>';
+            }
+            
+            try {
+                // Prepare content for OpenAI
+                const videoContent = `Заголовок видео: ${videoTitle}\n\nОписание: ${videoDescription}`;
+                
+                // Call OpenAI API
+                const summary = await generateVideoSummaryWithOpenAI(videoContent);
+                
+                if (panelBody) {
+                    const cleanSummary = stripMarkdown(summary);
+                    panelBody.innerHTML = `<p>${cleanSummary.replace(/\n/g, '<br>')}</p>`;
+                }
+            } catch (error) {
+                console.error('Ошибка при генерации содержания:', error);
+                if (panelBody) {
+                    panelBody.innerHTML = '<p><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg>Ошибка при генерации содержания. Попробуйте позже.</p>';
+                }
+            }
+        }
+        
+        async function loadQuizContent(videoIndex) {
+            const videoSection = document.getElementById(`video-section-${videoIndex}`);
+            const videoTitle = videoSection.querySelector('.video-title').textContent;
+            const videoDescription = videoSection.querySelector('.video-description').textContent;
+            const panelBody = document.getElementById('panelBody');
+            
+            // Show loading state
+            if (panelBody) {
+                panelBody.innerHTML = '<p><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>Генерируем квиз по видео...</p>';
+            }
+            
+            try {
+                // First, try to get video transcript
+                const videoId = getVideoIdFromSection(videoSection);
+                let transcript = '';
+                
+                try {
+                    transcript = await getVideoTranscript(videoId);
+                } catch (transcriptError) {
+                    console.log('Транскрипт недоступен, используем описание:', transcriptError);
+                }
+                
+                // Prepare content for quiz generation
+                const videoContent = `Заголовок видео: ${videoTitle}\n\nОписание: ${videoDescription}${transcript ? `\n\nТранскрипт: ${transcript}` : ''}`;
+                
+                // Generate quiz with OpenAI
+                const quiz = await generateQuizWithOpenAI(videoContent);
+                
+                if (panelBody) {
+                    panelBody.innerHTML = quiz;
+                }
+            } catch (error) {
+                console.error('Ошибка при генерации квиза:', error);
+                if (panelBody) {
+                    panelBody.innerHTML = '<p><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg>Ошибка при генерации квиза. Попробуйте позже.</p>';
+                }
+            }
+        }
+        
+        async function generateVideoSummaryWithOpenAI(videoContent) {
+            if (!OPENAI_API_KEY || OPENAI_API_KEY === 'YOUR_OPENAI_API_KEY' || OPENAI_API_KEY.startsWith('sk-your-')) {
+                throw new Error('OpenAI API ключ не настроен');
+            }
+            
+            const prompt = `Проанализируй это видео и создай структурированное содержание на русском языке:
+
+${videoContent}
+
+Создай содержание в следующем формате:
+
+**Основные темы:**
+• Тема 1
+• Тема 2
+• Тема 3
+
+**Ключевые моменты:**
+• Важный момент 1
+• Важный момент 2
+• Важный момент 3
+
+**Практические советы:**
+• Совет 1
+• Совет 2
+• Совет 3
+
+**Полезные ссылки:**
+• Дополнительные ресурсы
+• Документация
+• Сообщество
+
+Сделай содержание информативным и полезным для изучения.`;
+
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${OPENAI_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                    model: 'gpt-3.5-turbo',
+                        messages: [
+                            {
+                                role: 'system',
+                            content: 'Ты эксперт по анализу образовательного контента. Создавай структурированные и полезные содержания видео.'
+                            },
+                            {
+                                role: 'user',
+                            content: prompt
+                            }
+                        ],
+                    max_tokens: 1000,
+                    temperature: 0.7
+                    })
+                });
+                
+                if (!response.ok) {
+                throw new Error(`OpenAI API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+            return data.choices[0].message.content;
+        }
+        
+        function getVideoIdFromSection(videoSection) {
+            const iframe = videoSection.querySelector('iframe');
+            if (iframe) {
+                const src = iframe.src;
+                const match = src.match(/embed\/([^?]+)/);
+                return match ? match[1] : null;
+            }
+            return null;
+        }
+        
+        async function getVideoTranscript(videoId) {
+            if (!videoId) {
+                throw new Error('Video ID не найден');
+            }
+            
+            // Используем YouTube Transcript API через CORS proxy
+            const transcriptUrl = `https://www.youtube.com/api/timedtext?v=${videoId}&lang=ru&fmt=json3`;
+            
+            try {
+                const response = await fetch(`http://localhost:3002/proxy?url=${encodeURIComponent(transcriptUrl)}`);
+                if (!response.ok) {
+                    throw new Error('Транскрипт недоступен');
+                }
+                
+                const data = await response.json();
+                if (data.events && data.events.length > 0) {
+                    return data.events
+                        .map(event => event.segs ? event.segs.map(seg => seg.utf8).join('') : '')
+                        .join(' ')
+                        .trim();
+                }
+                throw new Error('Транскрипт пуст');
+            } catch (error) {
+                console.log('Ошибка получения транскрипта:', error);
+                throw error;
+            }
+        }
+        
+        async function generateQuizWithOpenAI(videoContent) {
+            if (!OPENAI_API_KEY || OPENAI_API_KEY === 'YOUR_OPENAI_API_KEY' || OPENAI_API_KEY.startsWith('sk-your-')) {
+                throw new Error('OpenAI API ключ не настроен');
+            }
+            
+            const prompt = `На основе этого видео создай интерактивный квиз на русском языке:
+
+${videoContent}
+
+Создай 5 вопросов с 4 вариантами ответов каждый. Включи правильные ответы и объяснения.
+
+Формат должен быть в HTML с интерактивными элементами:
+
+<div class="quiz-container">
+    <h3>Вопрос 1:</h3>
+    <p>Текст вопроса</p>
+    <div class="quiz-options">
+        <label><input type="radio" name="q1" value="a"> A) Вариант A</label>
+        <label><input type="radio" name="q1" value="b"> B) Вариант B</label>
+        <label><input type="radio" name="q1" value="c"> C) Вариант C</label>
+        <label><input type="radio" name="q1" value="d"> D) Вариант D</label>
+    </div>
+    <div class="quiz-explanation" style="display:none;">
+        <strong>Правильный ответ:</strong> B<br>
+        <strong>Объяснение:</strong> Текст объяснения
+    </div>
+</div>
+
+Добавь кнопку "Проверить ответы" в конце с классом "quiz-check-btn".`;
+
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${OPENAI_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-3.5-turbo',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'Ты эксперт по созданию образовательных квизов. Создавай качественные вопросы с правильными ответами и объяснениями.'
+                        },
+                        {
+                            role: 'user',
+                            content: prompt
+                        }
+                    ],
+                    max_tokens: 2000,
+                    temperature: 0.7
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`OpenAI API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const quizHTML = data.choices[0].message.content;
+            
+            // Add event listener for check button after quiz is loaded
+            setTimeout(() => {
+                addQuizEventListeners();
+                // Also add a global click handler as backup
+                document.addEventListener('click', handleQuizButtonClick);
+                // Add event delegation to panel body
+                const panelBody = document.getElementById('panelBody');
+                if (panelBody) {
+                    panelBody.addEventListener('click', function(event) {
+                        if (event.target.classList.contains('quiz-check-btn') || 
+                            event.target.textContent === 'Проверить ответы') {
+                            console.log('Quiz check button clicked via panel body delegation');
+                            checkQuizAnswers();
+                        }
+                    });
+                }
+            }, 100);
+            
+            return quizHTML;
+        }
+        
+        function addQuizEventListeners() {
+            // Remove existing listeners first
+            const existingBtn = document.querySelector('.quiz-check-btn');
+            if (existingBtn) {
+                existingBtn.removeEventListener('click', checkQuizAnswers);
+            }
+            
+            // Add new listener
+            const checkBtn = document.querySelector('.quiz-check-btn');
+            if (checkBtn) {
+                checkBtn.addEventListener('click', checkQuizAnswers);
+                console.log('Quiz check button event listener added');
+            } else {
+                console.log('Quiz check button not found');
+            }
+        }
+        
+        function handleQuizButtonClick(event) {
+            if (event.target.classList.contains('quiz-check-btn') || 
+                event.target.textContent === 'Проверить ответы') {
+                console.log('Quiz check button clicked via global handler');
+                checkQuizAnswers();
+            }
+        }
+        
+        function checkQuizAnswers() {
+            console.log('checkQuizAnswers function called');
+            const quizContainers = document.querySelectorAll('.quiz-container');
+            let correctAnswers = 0;
+            let totalQuestions = quizContainers.length;
+            
+            console.log(`Found ${totalQuestions} quiz containers`);
+            
+            quizContainers.forEach((container, index) => {
+                const explanations = container.querySelectorAll('.quiz-explanation');
+                const selectedAnswer = container.querySelector('input[type="radio"]:checked');
+                
+                console.log(`Question ${index + 1}: selected answer =`, selectedAnswer ? selectedAnswer.value : 'none');
+                
+                // Show all explanations
+                explanations.forEach(explanation => {
+                    explanation.style.display = 'block';
+                });
+                
+                // Check if answer is correct by comparing with explanation
+                if (selectedAnswer) {
+                    const explanation = container.querySelector('.quiz-explanation');
+                    if (explanation) {
+                        const explanationText = explanation.textContent;
+                        // Extract correct answer from explanation text
+                        const correctMatch = explanationText.match(/Правильный ответ[:\s]*([A-Da-d])/i);
+                        if (correctMatch) {
+                            const correctAnswer = correctMatch[1].toLowerCase();
+                            const userAnswer = selectedAnswer.value.toLowerCase();
+                            console.log(`Question ${index + 1}: user=${userAnswer}, correct=${correctAnswer}`);
+                            if (userAnswer === correctAnswer) {
+                                correctAnswers++;
+                                console.log(`Question ${index + 1}: CORRECT`);
+                            } else {
+                                console.log(`Question ${index + 1}: WRONG`);
+                            }
+                        } else {
+                            // Try alternative patterns for correct answer
+                            const altMatch1 = explanationText.match(/ответ[:\s]*([A-Da-d])/i);
+                            const altMatch2 = explanationText.match(/правильно[:\s]*([A-Da-d])/i);
+                            const altMatch3 = explanationText.match(/верно[:\s]*([A-Da-d])/i);
+                            
+                            const correctAnswer = altMatch1 ? altMatch1[1].toLowerCase() : 
+                                                altMatch2 ? altMatch2[1].toLowerCase() : 
+                                                altMatch3 ? altMatch3[1].toLowerCase() : null;
+                            
+                            if (correctAnswer) {
+                                const userAnswer = selectedAnswer.value.toLowerCase();
+                                console.log(`Question ${index + 1}: user=${userAnswer}, correct=${correctAnswer} (alt pattern)`);
+                                if (userAnswer === correctAnswer) {
+                                    correctAnswers++;
+                                    console.log(`Question ${index + 1}: CORRECT (alt pattern)`);
+                                } else {
+                                    console.log(`Question ${index + 1}: WRONG (alt pattern)`);
+                                }
+                            } else {
+                                console.log(`Question ${index + 1}: Could not find correct answer in explanation`);
+                                // If we can't determine the correct answer, don't count it as correct
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Show results
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'quiz-results';
+            resultDiv.style.cssText = `
+                margin-top: 20px;
+                padding: 15px;
+                background: rgba(48, 202, 161, 0.1);
+                border: 1px solid rgba(48, 202, 161, 0.3);
+                border-radius: 8px;
+                color: #FFFFFF;
+                text-align: center;
+            `;
+            
+            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+            resultDiv.innerHTML = `
+                <h3>Результат квиза</h3>
+                <p>Правильных ответов: ${correctAnswers} из ${totalQuestions}</p>
+                <p>Процент: ${percentage}%</p>
+                ${percentage >= 80 ? '<p style="color: #30CAA1;"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Отлично!</p>' : 
+                  percentage >= 60 ? '<p style="color: #FFA500;"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>Хорошо!</p>' : 
+                  '<p style="color: #FF6B6B;"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Есть над чем поработать!</p>'}
+            `;
+            
+            // Remove existing results
+            const existingResults = document.querySelector('.quiz-results');
+            if (existingResults) {
+                existingResults.remove();
+            }
+            
+            // Add new results
+            const panelBody = document.getElementById('panelBody');
+            if (panelBody) {
+                panelBody.appendChild(resultDiv);
+            }
+        }
+        
+        // Snap scroll functionality
+        let currentVideoIndex = 0;
+        let isScrolling = false;
+        
+        function initSnapScroll() {
+            const feedContainer = document.getElementById('feedContainer');
+            
+            // Add keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+                    e.preventDefault();
+                    scrollToNextVideo();
+                } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+                    e.preventDefault();
+                    scrollToPreviousVideo();
+                } else if (e.key === 'Home') {
+                    e.preventDefault();
+                    scrollToVideo(0);
+                } else if (e.key === 'End') {
+                    e.preventDefault();
+                    const totalVideos = document.querySelectorAll('.video-section').length;
+                    scrollToVideo(totalVideos - 1);
+                }
+            });
+            
+            // Add wheel event for smooth scrolling
+            feedContainer.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                if (isScrolling) return;
+                
+                const delta = e.deltaY > 0 ? 1 : -1;
+                if (delta > 0) {
+                    scrollToNextVideo();
+                } else {
+                    scrollToPreviousVideo();
+                }
+            });
+            
+            // Add touch support for mobile
+            let touchStartY = 0;
+            let touchStartTime = 0;
+            
+            feedContainer.addEventListener('touchstart', function(e) {
+                touchStartY = e.touches[0].clientY;
+                touchStartTime = Date.now();
+            });
+            
+            feedContainer.addEventListener('touchend', function(e) {
+                if (isScrolling) return;
+                
+                const touchEndY = e.changedTouches[0].clientY;
+                const touchEndTime = Date.now();
+                const delta = touchStartY - touchEndY;
+                const timeDelta = touchEndTime - touchStartTime;
+                
+                // Only trigger if swipe is fast enough and far enough
+                if (Math.abs(delta) > 50 && timeDelta < 300) {
+                    if (delta > 0) {
+                        scrollToNextVideo();
+            } else {
+                        scrollToPreviousVideo();
+                    }
+                }
+            });
+            
+            // Update current video index on scroll
+            feedContainer.addEventListener('scroll', function() {
+                updateCurrentVideoIndex();
+            });
+        }
+        
+        function updateCurrentVideoIndex() {
+            const feedContainer = document.getElementById('feedContainer');
+            const videoSections = document.querySelectorAll('.video-section');
+            const scrollTop = feedContainer.scrollTop;
+            const windowHeight = window.innerHeight;
+            
+            for (let i = 0; i < videoSections.length; i++) {
+                const sectionTop = i * windowHeight;
+                const sectionBottom = (i + 1) * windowHeight;
+                
+                if (scrollTop >= sectionTop && scrollTop < sectionBottom) {
+                    if (currentVideoIndex !== i) {
+                        currentVideoIndex = i;
+                        highlightCurrentVideo();
+                        console.log('Current video changed to:', currentVideoIndex);
+                    }
+                    break;
+                }
+            }
+        }
+        
+        function scrollToVideo(index) {
+            if (isScrolling) return;
+            isScrolling = true;
+            
+            // Close all panels when scrolling
+            closeAllPanels();
+            
+            const feedContainer = document.getElementById('feedContainer');
+            const videoSections = document.querySelectorAll('.video-section');
+            
+            if (index >= 0 && index < videoSections.length) {
+                const targetScroll = index * window.innerHeight;
+                
+                feedContainer.scrollTo({
+                    top: targetScroll,
+                    behavior: 'smooth'
+                });
+                
+                currentVideoIndex = index;
+            }
+            
+            setTimeout(() => {
+                isScrolling = false;
+            }, 800);
+        }
+        
+        function scrollToNextVideo() {
+            const videoSections = document.querySelectorAll('.video-section');
+            const nextIndex = Math.min(currentVideoIndex + 1, videoSections.length - 1);
+            scrollToVideo(nextIndex);
+        }
+        
+        function scrollToPreviousVideo() {
+            const prevIndex = Math.max(currentVideoIndex - 1, 0);
+            scrollToVideo(prevIndex);
+        }
+        
+        // Initialize snap scroll when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize immediately
+            initSnapScroll();
+            
+            // Initialize Smart Currency
+            if (window.SmartCurrency) {
+                window.SmartCurrency.updateDisplay();
+                console.log('✅ Smart Currency инициализирована в ленте');
+            }
+            
+            // Инициализация TTS
+            if (window.TTSService) {
+                // Проверяем настройки TTS
+                const ttsSettings = localStorage.getItem('ttsSettings');
+                if (ttsSettings) {
+                    const settings = JSON.parse(ttsSettings);
+                    if (settings.enabled) {
+                        window.TTSService.enableTTS();
+                        console.log('🔊 TTS автоматически включен');
+                    }
+                }
+            }
+            
+            // Also initialize after videos load
+            setTimeout(() => {
+                updateCurrentVideoIndex();
+                console.log('Snap scroll initialized, current video:', currentVideoIndex);
+            }, 1000);
+        });
+        
+        // Add visual indicator for current video (disabled)
+        function highlightCurrentVideo() {
+            // Visual highlighting disabled - no border or shadow
+            return;
+        }
+    </script>
+    
+    <!-- Новый современный навбар -->
+    <nav class="modern-navbar">
+        <div class="modern-navbar__container">
+            <!-- Лента (активная страница) -->
+            <div class="modern-navbar__item modern-navbar__item--active" onclick="window.location.href='feed.html'">
+                <div class="modern-navbar__icon-wrapper">
+                    <svg class="modern-navbar__icon" viewBox="0 0 24 24" fill="none">
+                        <path d="M4.5 4.5a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h8.25a3 3 0 0 0 3-3v-9a3 3 0 0 0-3-3H4.5ZM19.94 18.75l-2.69-2.69V7.94l2.69-2.69c.944-.945 2.56-.276 2.56 1.06v11.38c0 1.336-1.616 2.005-2.56 1.06Z" fill="currentColor"/>
+                    </svg>
+                </div>
+                <span class="modern-navbar__label">Лента</span>
+            </div>
+
+            <!-- Посты -->
+            <div class="modern-navbar__item" onclick="window.location.href='posts.html'">
+                <div class="modern-navbar__icon-wrapper">
+                    <svg class="modern-navbar__icon" viewBox="0 0 24 24" fill="none">
+                        <path fill-rule="evenodd" d="M4.125 3C3.089 3 2.25 3.84 2.25 4.875V18a3 3 0 0 0 3 3h15a3 3 0 0 1-3-3V4.875C17.25 3.839 16.41 3 15.375 3H4.125ZM12 9.75a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H12Zm-.75-2.25a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H12a.75.75 0 0 1-.75-.75ZM6 12.75a.75.75 0 0 0 0 1.5h7.5a.75.75 0 0 0 0-1.5H6Zm-.75 3.75a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5H6a.75.75 0 0 1-.75-.75ZM6 6.75a.75.75 0 0 0-.75.75v3c0 .414.336.75.75.75h3a.75.75 0 0 0 .75-.75v-3A.75.75 0 0 0 9 6.75H6Z" clip-rule="evenodd" fill="currentColor"/>
+                        <path d="M18.75 6.75h1.875c.621 0 1.125.504 1.125 1.125V18a1.5 1.5 0 0 1-3 0V6.75Z" fill="currentColor"/>
+                    </svg>
+                </div>
+                <span class="modern-navbar__label">Посты</span>
+            </div>
+
+            <!-- Квизы -->
+            <a href="quiz-template.html" class="modern-navbar__item">
+                <div class="modern-navbar__icon-wrapper">
+                    <svg class="modern-navbar__icon" viewBox="0 0 24 24" fill="none">
+                        <path fill-rule="evenodd" d="M4.5 2.25a.75.75 0 0 0 0 1.5v16.5h-.75a.75.75 0 0 0 0 1.5h16.5a.75.75 0 0 0 0-1.5h-.75V3.75a.75.75 0 0 0 0-1.5H4.5ZM3.75 3a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 .75.75v18a.75.75 0 0 1-.75.75h-15a.75.75 0 0 1-.75-.75V3Zm6.75 3a.75.75 0 0 0 0 1.5h3a.75.75 0 0 0 0-1.5h-3Zm0 3a.75.75 0 0 0 0 1.5h3a.75.75 0 0 0 0-1.5h-3Zm0 3a.75.75 0 0 0 0 1.5h3a.75.75 0 0 0 0-1.5h-3Zm0 3a.75.75 0 0 0 0 1.5h3a.75.75 0 0 0 0-1.5h-3Z" clip-rule="evenodd" fill="currentColor"/>
+                    </svg>
+                </div>
+                <span class="modern-navbar__label">Квиз</span>
+            </a>
+
+            <!-- Статистика -->
+            <div class="modern-navbar__item" onclick="window.location.href='stats.html'">
+                <div class="modern-navbar__icon-wrapper">
+                    <svg class="modern-navbar__icon" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 4.5A2.25 2.25 0 0 1 5.25 2.25h13.5A2.25 2.25 0 0 1 21 4.5v15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 19.5v-15ZM12 6.75a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75ZM12 12a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75ZM12 17.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75ZM6.75 6.75a.75.75 0 0 1 .75-.75h.75a.75.75 0 0 1 0 1.5h-.75a.75.75 0 0 1-.75-.75ZM6.75 12a.75.75 0 0 1 .75-.75h.75a.75.75 0 0 1 0 1.5h-.75a.75.75 0 0 1-.75-.75ZM6.75 17.25a.75.75 0 0 1 .75-.75h.75a.75.75 0 0 1 0 1.5h-.75a.75.75 0 0 1-.75-.75Z" fill="currentColor"/>
+                    </svg>
+                </div>
+                <span class="modern-navbar__label">Статистика</span>
+            </div>
+
+            <!-- Магазин -->
+            <div class="modern-navbar__item" onclick="window.location.href='smart-shop.html'">
+                <div class="modern-navbar__icon-wrapper">
+                    <svg class="modern-navbar__icon" viewBox="0 0 24 24" fill="none">
+                        <path d="M2.25 2.25a.75.75 0 0 0 0 1.5h1.5c.98 0 1.813.626 2.122 1.5h13.5a.75.75 0 0 1 0 1.5H5.872a2.25 2.25 0 0 1-2.122 1.5H2.25a.75.75 0 0 1 0-1.5ZM2.25 6a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1 0-1.5ZM2.25 9.75a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1 0-1.5ZM2.25 13.5a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1 0-1.5ZM2.25 17.25a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1 0-1.5ZM6 3.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H6.75a.75.75 0 0 1-.75-.75ZM6 6.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H6.75a.75.75 0 0 1-.75-.75ZM6 9.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H6.75a.75.75 0 0 1-.75-.75ZM6 12.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H6.75a.75.75 0 0 1-.75-.75ZM6 15.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H6.75a.75.75 0 0 1-.75-.75ZM6 18.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H6.75a.75.75 0 0 1-.75-.75ZM9 3.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H9.75a.75.75 0 0 1-.75-.75ZM9 6.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H9.75a.75.75 0 0 1-.75-.75ZM9 9.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H9.75a.75.75 0 0 1-.75-.75ZM9 12.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H9.75a.75.75 0 0 1-.75-.75ZM9 15.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H9.75a.75.75 0 0 1-.75-.75ZM9 18.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H9.75a.75.75 0 0 1-.75-.75ZM12 3.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM12 6.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM12 9.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM12 12.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM12 15.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM12 18.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM15 3.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM15 6.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM15 9.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM15 12.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM15 15.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM15 18.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM18 3.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM18 6.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM18 9.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM18 12.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM18 15.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM18 18.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM21 3.75a.75.75 0 0 1 .75-.75h.75a.75.75 0 0 1 0 1.5h-.75a.75.75 0 0 1-.75-.75ZM21 6.75a.75.75 0 0 1 .75-.75h.75a.75.75 0 0 1 0 1.5h-.75a.75.75 0 0 1-.75-.75ZM21 9.75a.75.75 0 0 1 .75-.75h.75a.75.75 0 0 1 0 1.5h-.75a.75.75 0 0 1-.75-.75ZM21 12.75a.75.75 0 0 1 .75-.75h.75a.75.75 0 0 1 0 1.5h-.75a.75.75 0 0 1-.75-.75ZM21 15.75a.75.75 0 0 1 .75-.75h.75a.75.75 0 0 1 0 1.5h-.75a.75.75 0 0 1-.75-.75ZM21 18.75a.75.75 0 0 1 .75-.75h.75a.75.75 0 0 1 0 1.5h-.75a.75.75 0 0 1-.75-.75Z" fill="currentColor"/>
+                    </svg>
+                </div>
+                <span class="modern-navbar__label">Магазин</span>
+            </div>
+
+            <!-- Конференции -->
+            <div class="modern-navbar__item" onclick="window.location.href='conference-template-new.html'">
+                <div class="modern-navbar__icon-wrapper">
+                    <svg class="modern-navbar__icon" viewBox="0 0 24 24" fill="none">
+                        <path d="M17 10.5V7C17 6.45 16.55 6 16 6H4C3.45 6 3 6.45 3 7V17C3 17.55 3.45 18 4 18H16C16.55 18 17 17.55 17 17V13.5L21 17.5V6.5L17 10.5Z" fill="currentColor"/>
+                    </svg>
+                </div>
+                <span class="modern-navbar__label">Конференции</span>
+            </div>
+
+            <!-- Настройки -->
+            <div class="modern-navbar__item" onclick="window.location.href='settings.html'">
+                <div class="modern-navbar__icon-wrapper">
+                    <svg class="modern-navbar__icon" viewBox="0 0 24 24" fill="none">
+                        <path d="M18.75 12.75h1.5a.75.75 0 0 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5ZM12 6a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 12 6ZM12 18a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 12 18ZM3.75 6.75h1.5a.75.75 0 1 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5ZM5.25 18.75h-1.5a.75.75 0 0 1 0-1.5h1.5a.75.75 0 0 1 0 1.5ZM3 12a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 3 12ZM9 3.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5ZM12.75 12a2.25 2.25 0 1 1 4.5 0 2.25 2.25 0 0 1-4.5 0ZM9 15.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Z" fill="currentColor"/>
+                    </svg>
+                </div>
+                <span class="modern-navbar__label">Настройки</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Единый навбар -->
+    <div id="unified-navbar-container"></div>
+</body>
+</html>

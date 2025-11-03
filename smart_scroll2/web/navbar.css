@@ -1,0 +1,119 @@
+/* Единый стиль для навигационной панели SmartScroll */
+
+/* Нижняя навигационная панель */
+.bottom-navbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #f5f5f5;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 8px 0;
+    z-index: 1000;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+    max-width: 80px;
+    border-radius: 8px;
+    min-width: 60px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.nav-item:hover {
+    background: #e8e8e8;
+}
+
+.nav-item.active {
+    background: #667eea;
+    color: white;
+}
+
+.nav-item.active .nav-icon {
+    color: white;
+}
+
+.nav-icon {
+    font-size: 18px;
+    margin-bottom: 3px;
+    color: #666;
+}
+
+.nav-label {
+    font-size: 11px;
+    color: #666;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.nav-item.active .nav-label {
+    color: white;
+}
+
+/* Отступ для контента, чтобы не перекрывался с навбаром */
+.content-with-navbar {
+    padding-bottom: 80px;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .bottom-navbar {
+        padding: 6px 0;
+    }
+    
+    .nav-item {
+        padding: 4px 6px;
+        min-width: 50px;
+    }
+    
+    .nav-icon {
+        font-size: 16px;
+    }
+    
+    .nav-label {
+        font-size: 10px;
+    }
+    
+    .content-with-navbar {
+        padding-bottom: 70px;
+    }
+}
+
+/* Темная тема для страниц с темным фоном */
+.dark-theme .bottom-navbar {
+    background: rgba(0, 0, 0, 0.9);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.dark-theme .nav-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.dark-theme .nav-item.active {
+    background: #667eea;
+}
+
+.dark-theme .nav-icon {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.dark-theme .nav-label {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.dark-theme .nav-item.active .nav-icon,
+.dark-theme .nav-item.active .nav-label {
+    color: white;
+}

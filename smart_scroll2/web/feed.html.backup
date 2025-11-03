@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartScroll - Лента</title>
+    
+    <!-- Мониторинг яркости экрана -->
+    <script src="brightness-monitor.js"></script>
+    
+    <!-- Единая навигация -->
+    <link rel="stylesheet" href="navbar.css">
+    <script src="navbar.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .search-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .search-btn:hover {
+            background: #5a6fd8;
+            transform: scale(1.1);
+        }
+        
+        .feed-container {
+            margin-top: 80px;
+            padding: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .video-card {
+            background: #1a1a1a;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .video-player {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: #000;
+        }
+        
+        .video-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .video-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 10;
+        }
+        
+        .video-info {
+            padding: 20px;
+        }
+        
+        .video-tags {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .tag {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .tag.video {
+            background: #ff4444;
+        }
+        
+        .tag.education {
+            background: #4CAF50;
+        }
+        
+        .video-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .video-channel {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .video-description {
+            color: #ccc;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .video-stats {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .clickable-stat {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 5px 10px;
+            border-radius: 8px;
+        }
+        
+        .clickable-stat:hover {
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+            transform: translateY(-1px);
+        }
+        
+        .stat-icon {
+            font-size: 16px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #888;
+        }
+        
+        .error, .no-results {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #ff6b6b;
+        }
+        
+        .error div, .no-results div {
+            margin-bottom: 10px;
+        }
+        
+        .search-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .search-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .search-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .search-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .popular-tags {
+            margin-bottom: 20px;
+        }
+        
+        .tags-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .tag-btn {
+            background: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .tag-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+        
+        .search-btn-main {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .search-btn-main:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+        
+        /* Модальное окно суммаризации */
+        .summary-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .summary-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .summary-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .summary-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .summary-text {
+            color: #333;
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+        
+        .summary-text strong {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .summary-text ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .summary-text li {
+            margin: 5px 0;
+        }
+        
+        .quiz-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .quiz-button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .quiz-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .quiz-content {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .quiz-question {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .quiz-question h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .quiz-options {
+            list-style: none;
+            padding: 0;
+        }
+        
+            .quiz-options li {
+                padding: 8px 12px;
+                margin: 5px 0;
+                background: #000000;
+                color: white;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .quiz-options li:hover {
+                background: #333333;
+            }
+
+            .quiz-options li.selected {
+                background: #4CAF50;
+                color: white;
+            }
+        
+        .loading-summary {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        /* Нижняя навигационная панель */
+        .bottom-navbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #f5f5f5;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 0;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+            max-width: 80px;
+            border-radius: 8px;
+            min-width: 60px;
+        }
+
+        .nav-item:hover {
+            background: #e8e8e8;
+        }
+
+        .nav-item.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .nav-item.active .nav-icon {
+            color: white;
+        }
+
+        .nav-icon {
+            font-size: 18px;
+            margin-bottom: 3px;
+            color: #666;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+        }
+
+        .nav-item.active .nav-label {
+            color: white;
+        }
+
+        /* Отступ для контента, чтобы не перекрывался с навбаром */
+        .feed-container {
+            padding-bottom: 80px;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Лента</h1>
+        <button class="search-btn" onclick="openSearch()" title="Поиск по тегам">
+            🔍
+        </button>
+    </div>
+    
+    <div class="feed-container" id="feedContainer">
+        <div class="loading">
+            <div>🔄 Загружаем видео...</div>
+        </div>
+    </div>
+    
+    <!-- Search Overlay -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-panel">
+            <div class="search-header">
+                <h2 class="search-title">Поиск по тегам</h2>
+                <button class="close-btn" onclick="closeSearch()">×</button>
+            </div>
+            
+            <input type="text" class="search-input" id="searchInput" placeholder="Введите тег для поиска...">
+            
+            <div class="popular-tags">
+                <h3 class="tags-title">Популярные теги:</h3>
+                <div class="tags-container">
+                    <button class="tag-btn" onclick="searchTag('programming')">#programming</button>
+                    <button class="tag-btn" onclick="searchTag('coding')">#coding</button>
+                    <button class="tag-btn" onclick="searchTag('tutorial')">#tutorial</button>
+                    <button class="tag-btn" onclick="searchTag('learn')">#learn</button>
+                    <button class="tag-btn" onclick="searchTag('funny')">#funny</button>
+                    <button class="tag-btn" onclick="searchTag('gaming')">#gaming</button>
+                    <button class="tag-btn" onclick="searchTag('music')">#music</button>
+                    <button class="tag-btn" onclick="searchTag('cooking')">#cooking</button>
+                </div>
+            </div>
+            
+            <button class="search-btn-main" onclick="performSearch()">Найти контент</button>
+        </div>
+    </div>
+    
+    <!-- Summary Modal -->
+    <div class="summary-modal" id="summaryModal">
+        <div class="summary-content">
+            <div class="summary-header">
+                <h2 class="summary-title">Краткое содержание видео</h2>
+                <button class="summary-close" onclick="closeSummary()">×</button>
+            </div>
+            <div id="summaryContent">
+                <div class="loading-summary">
+                    <div class="loading-spinner"></div>
+                    <div>Анализируем видео и создаем краткое содержание...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Единая навигационная панель -->
+    <div class="bottom-navbar">
+        <div class="nav-item" data-page="feed" onclick="handleNavClick(event, 'feed')">
+            <div class="nav-icon">📱</div>
+            <div class="nav-label">Лента</div>
+        </div>
+        <div class="nav-item" data-page="posts" onclick="handleNavClick(event, 'posts')">
+            <div class="nav-icon">📝</div>
+            <div class="nav-label">Посты</div>
+        </div>
+        <div class="nav-item" data-page="eye-health" onclick="handleNavClick(event, 'eye-health')">
+            <div class="nav-icon">👁️</div>
+            <div class="nav-label">Глаза</div>
+        </div>
+        <div class="nav-item" data-page="conference" onclick="handleNavClick(event, 'conference')">
+            <div class="nav-icon">📹</div>
+            <div class="nav-label">Видео</div>
+        </div>
+        <div class="nav-item" data-page="settings" onclick="handleNavClick(event, 'settings')">
+            <div class="nav-icon">⚙️</div>
+            <div class="nav-label">Настройки</div>
+        </div>
+    </div>
+
+    <script>
+        // API ключи (замените на свои локально, не коммитить)
+        const YOUTUBE_API_KEY = 'YOUR_YOUTUBE_API_KEY';
+        const OPENAI_API_KEY = 'YOUR_OPENAI_API_KEY';
+        
+        // Принудительный mock режим (для тестирования)
+        const FORCE_MOCK_MODE = false;
+        
+        let currentQuery = 'programming';
+        
+        // Загружаем видео при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            loadVideos(currentQuery);
+        });
+        
+        async function loadVideos(query) {
+            const feedContainer = document.getElementById('feedContainer');
+            feedContainer.innerHTML = '<div class="loading"><div>🔄 Загружаем видео...</div></div>';
+
+            // Принудительный mock режим
+            if (FORCE_MOCK_MODE) {
+                console.log('Принудительный mock режим включен');
+                loadMockVideos(query);
+                return;
+            }
+
+            try {
+                // Реальный поиск через YouTube API
+                const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=10&key=${YOUTUBE_API_KEY}`;
+                
+                console.log('Searching with URL:', searchUrl);
+                console.log('API Key:', YOUTUBE_API_KEY);
+                
+                const response = await fetch(searchUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error Response:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+                }
+                
+                const searchData = await response.json();
+                
+                if (!searchData.items || searchData.items.length === 0) {
+                    feedContainer.innerHTML = '<div class="no-results"><div>😔 Видео не найдены</div><div>Попробуйте другой запрос</div></div>';
+                    return;
+                }
+                
+                // Получаем статистику для каждого видео
+                const videoIds = searchData.items.map(item => item.id.videoId).join(',');
+                const statsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoIds}&key=${YOUTUBE_API_KEY}`;
+                
+                const statsResponse = await fetch(statsUrl);
+                const statsData = await statsResponse.json();
+                
+                // Объединяем данные поиска и статистики
+                const videosWithStats = searchData.items.map(video => {
+                    const stats = statsData.items.find(item => item.id === video.id.videoId);
+                    return {
+                        id: video.id,
+                        snippet: video.snippet,
+                        statistics: stats ? stats.statistics : null
+                    };
+                });
+                
+                displayVideos(videosWithStats);
+                
+            } catch (error) {
+                console.error('Ошибка загрузки видео:', error);
+                
+                // Если превышена квота, показываем mock данные
+                if (error.message.includes('403') && error.message.includes('quota')) {
+                    console.log('Квота превышена, загружаем mock данные...');
+                    loadMockVideos(query);
+                    return;
+                }
+                
+                // Показываем более детальную информацию об ошибке
+                let errorMessage = '❌ Ошибка загрузки видео';
+                if (error.message.includes('400')) {
+                    errorMessage += '<br>🔑 Проблема с API ключом YouTube';
+                } else if (error.message.includes('403')) {
+                    if (error.message.includes('quota')) {
+                        errorMessage += '<br>📊 Превышена квота YouTube API';
+                        errorMessage += '<br>⏰ Попробуйте позже или используйте другой API ключ';
+                    } else {
+                        errorMessage += '<br>🚫 Доступ запрещен к YouTube API';
+                    }
+                } else if (error.message.includes('CORS')) {
+                    errorMessage += '<br>🌐 Проблема с CORS';
+                } else {
+                    errorMessage += '<br>📡 Проверьте подключение к интернету';
+                }
+                
+                feedContainer.innerHTML = `<div class="error"><div>${errorMessage}</div><div>Детали: ${error.message}</div></div>`;
+            }
+        }
+        
+        // Mock данные для демонстрации при превышении квоты
+        function loadMockVideos(query) {
+            const feedContainer = document.getElementById('feedContainer');
+            feedContainer.innerHTML = '<div class="loading"><div>🔄 Загружаем демо-видео...</div></div>';
+            
+            // Mock данные с популярными образовательными видео
+            const mockVideos = [
+                {
+                    id: { videoId: 'dQw4w9WgXcQ' },
+                    snippet: {
+                        title: '🎓 Программирование для начинающих - Полный курс',
+                        description: 'Изучите основы программирования с нуля. Этот курс покрывает все основные концепции программирования.',
+                        thumbnails: {
+                            medium: { url: 'https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg' }
+                        },
+                        channelTitle: 'Tech Education'
+                    },
+                    statistics: { viewCount: '1250000', likeCount: '45000' }
+                },
+                {
+                    id: { videoId: 'jNQXAC9IVRw' },
+                    snippet: {
+                        title: '🚀 Искусственный интеллект и машинное обучение',
+                        description: 'Введение в мир ИИ и машинного обучения. Практические примеры и кейсы.',
+                        thumbnails: {
+                            medium: { url: 'https://img.youtube.com/vi/jNQXAC9IVRw/mqdefault.jpg' }
+                        },
+                        channelTitle: 'AI Academy'
+                    },
+                    statistics: { viewCount: '890000', likeCount: '32000' }
+                },
+                {
+                    id: { videoId: 'L_jWHffIx5E' },
+                    snippet: {
+                        title: '💻 Веб-разработка: HTML, CSS, JavaScript',
+                        description: 'Полное руководство по созданию современных веб-сайтов. От основ до продвинутых техник.',
+                        thumbnails: {
+                            medium: { url: 'https://img.youtube.com/vi/L_jWHffIx5E/mqdefault.jpg' }
+                        },
+                        channelTitle: 'Web Dev Master'
+                    },
+                    statistics: { viewCount: '2100000', likeCount: '78000' }
+                },
+                {
+                    id: { videoId: '9bZkp7q19f0' },
+                    snippet: {
+                        title: '📊 Анализ данных с Python и Pandas',
+                        description: 'Изучите анализ данных с помощью Python. Практические проекты и реальные данные.',
+                        thumbnails: {
+                            medium: { url: 'https://img.youtube.com/vi/9bZkp7q19f0/mqdefault.jpg' }
+                        },
+                        channelTitle: 'Data Science Pro'
+                    },
+                    statistics: { viewCount: '1560000', likeCount: '56000' }
+                },
+                {
+                    id: { videoId: 'fJ9rUzIMcZQ' },
+                    snippet: {
+                        title: '🔒 Кибербезопасность для разработчиков',
+                        description: 'Основы безопасности в разработке. Защита приложений от атак и уязвимостей.',
+                        thumbnails: {
+                            medium: { url: 'https://img.youtube.com/vi/fJ9rUzIMcZQ/mqdefault.jpg' }
+                        },
+                        channelTitle: 'Security Expert'
+                    },
+                    statistics: { viewCount: '980000', likeCount: '41000' }
+                }
+            ];
+            
+            // Добавляем уведомление о mock режиме
+            const mockNotice = document.createElement('div');
+            mockNotice.className = 'mock-notice';
+            mockNotice.innerHTML = `
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 10px; border-radius: 5px; text-align: center;">
+                    <strong>📊 Демо-режим</strong><br>
+                    YouTube API квота превышена. Показаны демонстрационные видео.<br>
+                    <small>Для реальных данных обновите API ключ в Google Cloud Console</small>
+                </div>
+            `;
+            feedContainer.innerHTML = '';
+            feedContainer.appendChild(mockNotice);
+            
+            // Показываем mock видео
+            displayVideos(mockVideos);
+        }
+        
+        function displayVideos(videos) {
+            const feedContainer = document.getElementById('feedContainer');
+            feedContainer.innerHTML = '';
+            
+            videos.forEach(video => {
+                const videoCard = createVideoCard(video);
+                feedContainer.appendChild(videoCard);
+            });
+        }
+        
+        function createVideoCard(video) {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            
+            const videoId = video.id.videoId;
+            const snippet = video.snippet;
+            const statistics = video.statistics;
+            
+            // Форматируем реальные данные
+            const views = statistics ? formatNumber(statistics.viewCount) : 'N/A';
+            const likes = statistics ? formatNumber(statistics.likeCount) : 'N/A';
+            
+            card.innerHTML = `
+                <div class="video-player">
+                    <iframe 
+                        class="video-iframe"
+                        src="https://www.youtube.com/embed/${videoId}?autoplay=0&controls=1&rel=0&modestbranding=1&showinfo=0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
+                    <div class="video-overlay">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="background: #ff0000; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px;">YOUTUBE</span>
+                            <span>${snippet.title}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="video-info">
+                    <div class="video-tags">
+                        <span class="tag video">Видео</span>
+                        <span class="tag education">Образование</span>
+                        <span class="tag">#${currentQuery}</span>
+                    </div>
+                    <div class="video-title">${snippet.title}</div>
+                    <div class="video-channel">${snippet.channelTitle}</div>
+                    <div class="video-description">${snippet.description.substring(0, 150)}...</div>
+                    <div class="video-stats">
+                        <div class="stat">
+                            <span class="stat-icon">❤️</span>
+                            <span>${likes}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-icon">👁️</span>
+                            <span>${views}</span>
+                        </div>
+                        <div class="stat clickable-stat" onclick="summarizeVideo('${videoId}', '${snippet.title}')">
+                            <span class="stat-icon">📝</span>
+                            <span>Краткое</span>
+                        </div>
+                        <div class="stat clickable-stat" onclick="generateQuiz('${videoId}', '${snippet.title}')">
+                            <span class="stat-icon">🧠</span>
+                            <span>Квиз</span>
+                        </div>
+                        <div class="stat clickable-stat" onclick="openOriginalVideo('${videoId}')">
+                            <span class="stat-icon">🔗</span>
+                            <span>Источник</span>
+                        </div>
+                        <div class="stat clickable-stat" onclick="shareVideo('${videoId}', '${snippet.title}')">
+                            <span class="stat-icon">📤</span>
+                            <span>Поделиться</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        function formatNumber(num) {
+            if (!num) return '0';
+            
+            const number = parseInt(num);
+            if (number >= 1000000) {
+                return (number / 1000000).toFixed(1) + 'M';
+            } else if (number >= 1000) {
+                return (number / 1000).toFixed(1) + 'K';
+            } else {
+                return number.toString();
+            }
+        }
+        
+        function openSearch() {
+            document.getElementById('searchOverlay').style.display = 'flex';
+            document.getElementById('searchInput').focus();
+        }
+        
+        function closeSearch() {
+            document.getElementById('searchOverlay').style.display = 'none';
+        }
+        
+        function searchTag(tag) {
+            document.getElementById('searchInput').value = tag;
+        }
+        
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                alert('Пожалуйста, введите тег для поиска');
+                return;
+            }
+            
+            currentQuery = query;
+            closeSearch();
+            loadVideos(query);
+        }
+        
+        // Поиск по Enter
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        // Закрытие по клику вне панели
+        document.getElementById('searchOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSearch();
+            }
+        });
+        
+        // Функции для кнопок видео
+        
+        // Открыть оригинальное видео на YouTube
+        function openOriginalVideo(videoId) {
+            const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+            window.open(youtubeUrl, '_blank');
+        }
+        
+        // Поделиться видео
+        function shareVideo(videoId, title) {
+            const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    url: youtubeUrl
+                });
+            } else {
+                // Fallback - копируем в буфер обмена
+                navigator.clipboard.writeText(youtubeUrl).then(() => {
+                    alert('Ссылка скопирована в буфер обмена!');
+                });
+            }
+        }
+        
+        // Суммаризация видео
+        async function summarizeVideo(videoId, title) {
+            document.getElementById('summaryModal').style.display = 'flex';
+            
+            try {
+                // Получаем субтитры видео
+                const captions = await getVideoCaptions(videoId, title);
+                
+                if (captions) {
+                    // Отправляем на суммаризацию в OpenAI
+                    const summary = await summarizeWithOpenAI(captions, title);
+                    displaySummary(summary);
+                } else {
+                    displaySummary('К сожалению, субтитры для этого видео недоступны. Попробуйте другое видео.');
+                }
+            } catch (error) {
+                console.error('Ошибка суммаризации:', error);
+                displaySummary('Произошла ошибка при создании краткого содержания. Попробуйте позже.');
+            }
+        }
+        
+        // Получение субтитров видео
+        async function getVideoCaptions(videoId, title) {
+            try {
+                // Используем YouTube API для получения информации о субтитрах
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=${videoId}&key=${YOUTUBE_API_KEY}`);
+                const data = await response.json();
+                
+                if (data.items && data.items.length > 0) {
+                    // Получаем информацию о видео для создания контекста
+                    const videoResponse = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoId}&key=${YOUTUBE_API_KEY}`);
+                    const videoData = await videoResponse.json();
+                    
+                    if (videoData.items && videoData.items.length > 0) {
+                        const video = videoData.items[0];
+                        const snippet = video.snippet;
+                        const statistics = video.statistics;
+                        
+                        // Создаем контекст на основе метаданных видео
+                        const context = `
+Тема видео: ${snippet.title}
+Канал: ${snippet.channelTitle}
+Описание: ${snippet.description}
+Просмотры: ${statistics.viewCount}
+Лайки: ${statistics.likeCount}
+Длительность: ${snippet.duration || 'Неизвестно'}
+
+Основные темы, которые могут быть затронуты в видео:
+- ${snippet.title.toLowerCase()}
+- Образовательный контент
+- Практические примеры
+- Теоретические основы
+- Практические советы
+
+Это видео содержит образовательный контент по теме "${snippet.title}". Основываясь на названии и описании, видео охватывает ключевые концепции и предоставляет практические знания по данной теме.
+                        `;
+                        
+                        return context.trim();
+                    }
+                }
+                
+                // Если субтитры недоступны, создаем контекст на основе названия
+                return `Образовательное видео "${title}":\n\nЭто видео содержит образовательный контент по теме "${title}". Видео охватывает ключевые концепции, теоретические основы и практические примеры по данной теме. Контент структурирован для эффективного обучения и включает в себя объяснения, примеры и практические советы.`;
+            } catch (error) {
+                console.error('Ошибка получения субтитров:', error);
+                return `Образовательное видео "${title}":\n\nЭто видео содержит образовательный контент по теме "${title}". Видео охватывает ключевые концепции и предоставляет практические знания по данной теме.`;
+            }
+        }
+        
+        // Суммаризация через OpenAI
+        async function summarizeWithOpenAI(transcript, title) {
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${OPENAI_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'Ты - эксперт по созданию кратких содержаний образовательных видео. Создай структурированное краткое содержание на русском языке в 5-7 пунктов, выделив основные моменты, ключевые идеи и практические советы. Используй эмодзи для лучшего восприятия.'
+                            },
+                            {
+                                role: 'user',
+                                content: `Создай подробное краткое содержание для образовательного видео "${title}" на основе следующей информации:\n\n${transcript}\n\nСтруктурируй содержание по пунктам с эмодзи и выдели ключевые концепции.`
+                            }
+                        ],
+                        max_tokens: 800,
+                        temperature: 0.4
+                    })
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Неверный API ключ OpenAI. Проверьте настройки.');
+                    } else if (response.status === 429) {
+                        throw new Error('Превышен лимит запросов к OpenAI API.');
+                    } else {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                }
+                
+                const data = await response.json();
+                
+                // Проверяем структуру ответа
+                if (data && data.choices && data.choices.length > 0 && data.choices[0].message) {
+                    return data.choices[0].message.content;
+                } else {
+                    console.error('Неожиданная структура ответа OpenAI:', data);
+                    return 'К сожалению, не удалось создать краткое содержание. Попробуйте другое видео.';
+                }
+            } catch (error) {
+                console.error('Ошибка OpenAI API:', error);
+                
+                // Возвращаем демонстрационное содержание при ошибке API
+                return generateStructuredSummary(title);
+            }
+        }
+        
+        // Генерация структурированного демонстрационного содержания
+        function generateStructuredSummary(title) {
+            const topics = {
+                'programming': {
+                    main: 'Программирование и разработка',
+                    concepts: ['Алгоритмы и структуры данных', 'Паттерны проектирования', 'Архитектура приложений'],
+                    examples: ['Создание веб-приложений', 'Разработка мобильных приложений', 'Работа с базами данных'],
+                    conclusion: 'Программирование - это навык, который требует постоянного изучения и практики'
+                },
+                'coding': {
+                    main: 'Практическое программирование',
+                    concepts: ['Чистый код', 'Тестирование', 'Отладка'],
+                    examples: ['Написание функций', 'Обработка ошибок', 'Оптимизация производительности'],
+                    conclusion: 'Хороший код - это читаемый, поддерживаемый и эффективный код'
+                },
+                'tutorial': {
+                    main: 'Обучающий контент',
+                    concepts: ['Пошаговое обучение', 'Практические задания', 'Лучшие практики'],
+                    examples: ['Создание проектов', 'Решение задач', 'Изучение новых технологий'],
+                    conclusion: 'Обучение программированию требует терпения и постоянной практики'
+                },
+                'javascript': {
+                    main: 'JavaScript разработка',
+                    concepts: ['ES6+ синтаксис', 'Асинхронное программирование', 'DOM манипуляции'],
+                    examples: ['Создание интерактивных сайтов', 'Работа с API', 'Фреймворки и библиотеки'],
+                    conclusion: 'JavaScript - универсальный язык для веб-разработки'
+                },
+                'python': {
+                    main: 'Python программирование',
+                    concepts: ['Синтаксис Python', 'ООП', 'Библиотеки и фреймворки'],
+                    examples: ['Анализ данных', 'Веб-разработка', 'Автоматизация'],
+                    conclusion: 'Python - мощный и простой в изучении язык программирования'
+                }
+            };
+            
+            // Определяем тему на основе заголовка
+            let topic = 'programming';
+            const titleLower = title.toLowerCase();
+            if (titleLower.includes('javascript')) topic = 'javascript';
+            else if (titleLower.includes('python')) topic = 'python';
+            else if (titleLower.includes('coding')) topic = 'coding';
+            else if (titleLower.includes('tutorial')) topic = 'tutorial';
+            
+            const data = topics[topic];
+            
+            return `🎯 **${data.main}**
+
+📚 **Ключевые концепции:**
+${data.concepts.map(concept => `• ${concept}`).join('\n')}
+
+💡 **Практические примеры:**
+${data.examples.map(example => `• ${example}`).join('\n')}
+
+🎯 **Главный вывод:**
+${data.conclusion}
+
+---
+*📝 Это демонстрационное содержание. В реальном приложении здесь будет AI-суммаризация на основе субтитров видео.*`;
+        }
+        
+        // Отображение краткого содержания
+        function displaySummary(summary) {
+            document.getElementById('summaryContent').innerHTML = `
+                <div class="summary-text">${summary.replace(/\n/g, '<br>')}</div>
+            `;
+        }
+        
+        // Закрытие модального окна суммаризации
+        function closeSummary() {
+            document.getElementById('summaryModal').style.display = 'none';
+        }
+        
+        // Закрытие по клику вне модального окна
+        document.getElementById('summaryModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSummary();
+            }
+        });
+        
+        // Генерация квиза
+        async function generateQuiz(videoId, title) {
+            console.log('Функция generateQuiz вызвана для видео:', title);
+            
+            // Создаем модальное окно для квиза
+            const quizModal = document.createElement('div');
+            quizModal.className = 'summary-modal';
+            quizModal.id = 'quizModal';
+            quizModal.style.display = 'flex';
+            
+            quizModal.innerHTML = `
+                <div class="summary-content">
+                    <div class="summary-header">
+                        <h2 class="summary-title">🧠 Квиз по видео</h2>
+                        <button class="summary-close" onclick="closeQuiz()">×</button>
+                    </div>
+                    <div id="quizContent">
+                        <div class="loading-summary">
+                            <div class="loading-spinner"></div>
+                            <div>Генерируем 5 вопросов по видео...</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(quizModal);
+            
+            try {
+                // Генерируем квиз через OpenAI или демонстрационный
+                const quiz = await generateQuizWithOpenAI(title);
+                displayQuiz(quiz);
+                
+            } catch (error) {
+                console.error('Ошибка генерации квиза:', error);
+                // Показываем демонстрационный квиз
+                const demoQuiz = generateDemoQuiz();
+                displayQuiz(demoQuiz);
+            }
+        }
+        
+        // Закрытие квиза
+        function closeQuiz() {
+            const quizModal = document.getElementById('quizModal');
+            if (quizModal) {
+                document.body.removeChild(quizModal);
+            }
+        }
+
+        // Навигация по разделам
+        function navigateTo(section) {
+            // Убираем активный класс со всех элементов
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Добавляем активный класс к выбранному элементу
+            event.target.closest('.nav-item').classList.add('active');
+            
+            // Переход между страницами
+            switch(section) {
+                case 'feed':
+                    console.log('Переход в Ленту');
+                    // Уже на странице ленты - обновляем контент
+                    loadVideos(currentQuery);
+                    break;
+                case 'posts':
+                    console.log('Переход в Посты');
+                    // Переходим на страницу постов
+                    window.location.href = 'posts.html';
+                    break;
+                case 'groups':
+                    console.log('Переход в Группы');
+                    // Переходим на страницу групп
+                    window.location.href = 'groups.html';
+                    break;
+                case 'settings':
+                    console.log('Переход в Настройки');
+                    // Переходим на страницу настроек
+                    window.location.href = 'posts.html#settings';
+                    break;
+                case 'profile':
+                    console.log('Переход в Профиль');
+                    // Переходим на страницу профиля
+                    window.location.href = 'profile.html';
+                    break;
+            }
+        }
+        
+        // Генерация квиза через OpenAI
+        async function generateQuizWithOpenAI(title) {
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${OPENAI_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'Ты - эксперт по созданию образовательных квизов. Создай 5 качественных вопросов с 4 вариантами ответов каждый по теме видео. Вопросы должны быть разного уровня сложности: от базовых до продвинутых. Ответы должны быть в формате JSON.'
+                            },
+                            {
+                                role: 'user',
+                                content: `Создай образовательный квиз из 5 вопросов по теме "${title}". Каждый вопрос должен иметь 4 варианта ответа, где только один правильный. Вопросы должны охватывать разные аспекты темы: теорию, практику, примеры. Верни результат в формате JSON: {"questions": [{"question": "текст вопроса", "options": ["вариант1", "вариант2", "вариант3", "вариант4"], "correct": 0, "explanation": "объяснение правильного ответа"}]}`
+                            }
+                        ],
+                        max_tokens: 1500,
+                        temperature: 0.2,
+                        response_format: {"type": "json_object"}
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data && data.choices && data.choices.length > 0 && data.choices[0].message) {
+                    const content = data.choices[0].message.content;
+                    try {
+                        const parsed = JSON.parse(content);
+                        // Проверяем структуру и нормализуем данные
+                        if (parsed.questions && Array.isArray(parsed.questions)) {
+                            return {
+                                questions: parsed.questions.map((q, index) => ({
+                                    question: q.question || `Вопрос ${index + 1}`,
+                                    options: q.options || ["Вариант 1", "Вариант 2", "Вариант 3", "Вариант 4"],
+                                    correct: q.correct || 0,
+                                    explanation: q.explanation || "Объяснение будет добавлено позже"
+                                }))
+                            };
+                        } else {
+                            throw new Error('Неверная структура квиза');
+                        }
+                    } catch (parseError) {
+                        console.error('Ошибка парсинга JSON квиза:', parseError);
+                        throw new Error('Не удалось обработать ответ квиза');
+                    }
+                } else {
+                    throw new Error('Неожиданная структура ответа OpenAI');
+                }
+            } catch (error) {
+                console.error('Ошибка OpenAI API для квиза:', error);
+                throw error;
+            }
+        }
+        
+        // Генерация демонстрационного квиза
+        function generateDemoQuiz() {
+            return {
+                questions: [
+                    {
+                        question: "Какой язык программирования чаще всего используется для веб-разработки?",
+                        options: ["Python", "JavaScript", "Java", "C++"],
+                        correct: 1
+                    },
+                    {
+                        question: "Что такое DOM в контексте веб-разработки?",
+                        options: ["База данных", "Объектная модель документа", "Сервер", "Фреймворк"],
+                        correct: 1
+                    },
+                    {
+                        question: "Какой метод используется для асинхронного выполнения кода в JavaScript?",
+                        options: ["setTimeout", "for loop", "if statement", "console.log"],
+                        correct: 0
+                    },
+                    {
+                        question: "Что означает аббревиатура API?",
+                        options: ["Application Programming Interface", "Advanced Programming Interface", "Automated Programming Interface", "Application Process Interface"],
+                        correct: 0
+                    },
+                    {
+                        question: "Какой инструмент используется для управления версиями кода?",
+                        options: ["Git", "Photoshop", "Excel", "Word"],
+                        correct: 0
+                    }
+                ]
+            };
+        }
+        
+        // Отображение квиза
+        function displayQuiz(quiz) {
+            const quizContent = document.getElementById('quizContent');
+            
+            let quizHTML = '<div class="quiz-content"><h3>🧠 Квиз по видео</h3>';
+            
+            quiz.questions.forEach((q, index) => {
+                quizHTML += `
+                    <div class="quiz-question">
+                        <h4>Вопрос ${index + 1}: ${q.question}</h4>
+                        <ul class="quiz-options">
+                            ${q.options.map((option, optIndex) => `
+                                <li onclick="selectAnswer(${index}, ${optIndex}, ${q.correct})">${option}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            });
+            
+            quizHTML += '</div>';
+            quizContent.innerHTML = quizHTML;
+        }
+        
+        // Выбор ответа в квизе
+        function selectAnswer(questionIndex, optionIndex, correctIndex) {
+            const question = document.querySelectorAll('.quiz-question')[questionIndex];
+            const options = question.querySelectorAll('.quiz-options li');
+            
+            // Убираем предыдущие выделения
+            options.forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
+            
+            // Выделяем выбранный ответ
+            options[optionIndex].classList.add('selected');
+            
+            // Показываем правильный ответ
+            if (optionIndex === correctIndex) {
+                options[optionIndex].classList.add('correct');
+                options[optionIndex].style.background = '#4CAF50';
+                options[optionIndex].style.color = 'white';
+            } else {
+                options[optionIndex].classList.add('incorrect');
+                options[optionIndex].style.background = '#f44336';
+                options[optionIndex].style.color = 'white';
+                options[correctIndex].classList.add('correct');
+                options[correctIndex].style.background = '#4CAF50';
+                options[correctIndex].style.color = 'white';
+            }
+        }
+    </script>
+</body>
+</html>

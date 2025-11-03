@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTS Тест - Smart Scroll</title>
+    <link rel="stylesheet" href="template-styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
+    
+    <!-- Единая навигация -->
+    <link rel="stylesheet" href="unified-navbar.css">
+    <script src="unified-navbar.js"></script>
+    
+    <!-- Мониторинг яркости экрана -->
+    <script src="brightness-monitor.js"></script>
+    
+    <!-- Smart Currency System -->
+    <script src="smart-currency.js"></script>
+    
+    <!-- TTS Service -->
+    <script src="tts-simple.js"></script>
+    
+        <!-- Button Audio System -->
+    <script src="button-audio.js"></script>
+<style>
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .test-section {
+            background: #1a1a1a;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+        
+        .test-section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #30CAA1;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #30CAA1 0%, #20A0FF 100%);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(48, 202, 161, 0.3);
+        }
+        
+        .test-text {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #444;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .test-text:hover {
+            background: #333;
+            border-color: #30CAA1;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online {
+            background: #30CAA1;
+        }
+        
+        .status-offline {
+            background: #FF6B6B;
+        }
+        
+        .status-unknown {
+            background: #FFA502;
+        }
+        
+        .test-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #555;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .test-input:focus {
+            outline: none;
+            border-color: #30CAA1;
+            box-shadow: 0 0 0 2px rgba(48, 202, 161, 0.2);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #30CAA1;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            z-index: 10000;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: none;
+        }
+        
+        .notification.error {
+            background: #FF6B6B;
+        }
+        
+        .notification.warning {
+            background: #FFA502;
+        }
+        
+        .notification.info {
+            background: #4A90E2;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- Единый навбар -->
+        <div id="unified-navbar-container"></div>
+
+        <!-- Main Content -->
+        <main class="main">
+            <div class="content">
+                <div class="main-content">
+                    <div class="test-container">
+                        
+                        <!-- Статус TTS -->
+                        <div class="test-section">
+                            <h2 class="test-section-title">
+                                <span class="status-indicator" id="statusIndicator"></span>
+                                Статус TTS системы
+                            </h2>
+                            
+                            <div id="ttsStatusInfo">
+                                <p><strong>Статус:</strong> <span id="ttsStatus">Проверка...</span></p>
+                                <p><strong>Сервер:</strong> <span id="serverStatus">Проверка...</span></p>
+                                <p><strong>Инициализация:</strong> <span id="initStatus">Проверка...</span></p>
+                            </div>
+                            
+                            <div style="margin-top: 20px;">
+                                <button class="test-button" onclick="checkTTSStatus()">🔄 Проверить статус</button>
+                                <button class="test-button" onclick="enableTTS()">🔊 Включить TTS</button>
+                                <button class="test-button" onclick="disableTTS()">🔇 Отключить TTS</button>
+                            </div>
+                        </div>
+
+                        <!-- Тест кнопок -->
+                        <div class="test-section">
+                            <h2 class="test-section-title">🎯 Тест кнопок</h2>
+                            <p>Нажмите на кнопки ниже, чтобы протестировать озвучку:</p>
+                            
+                            <div class="test-buttons">
+                                <button class="test-button" onclick="testButtonClick(this)">Главная страница</button>
+                                <button class="test-button" onclick="testButtonClick(this)">Настройки</button>
+                                <button class="test-button" onclick="testButtonClick(this)">Профиль</button>
+                                <button class="test-button" onclick="testButtonClick(this)">Выйти из аккаунта</button>
+                                <button class="test-button" onclick="testButtonClick(this)">Сохранить изменения</button>
+                                <button class="test-button" onclick="testButtonClick(this)">Отменить</button>
+                            </div>
+                        </div>
+
+                        <!-- Тест текста -->
+                        <div class="test-section">
+                            <h2 class="test-section-title">📝 Тест текста</h2>
+                            <p>Кликните по тексту ниже, чтобы протестировать озвучку:</p>
+                            
+                            <div class="test-text" onclick="testTextClick(this)">
+                                <h3>Заголовок для тестирования</h3>
+                                <p>Этот текст должен быть озвучен при клике. Система TTS преобразует текст в речь.</p>
+                            </div>
+                            
+                            <div class="test-text" onclick="testTextClick(this)">
+                                <h3>Информация о системе</h3>
+                                <p>Smart Scroll - это интеллектуальная система для мониторинга здоровья глаз и озвучки интерфейса.</p>
+                            </div>
+                            
+                            <div class="test-text" onclick="testTextClick(this)">
+                                <h3>Настройки озвучки</h3>
+                                <p>Вы можете настроить громкость, скорость речи и выбрать подходящий голос для озвучки.</p>
+                            </div>
+                        </div>
+
+                        <!-- Пользовательский тест -->
+                        <div class="test-section">
+                            <h2 class="test-section-title">✏️ Пользовательский тест</h2>
+                            <p>Введите свой текст для тестирования озвучки:</p>
+                            
+                            <input type="text" class="test-input" id="customText" placeholder="Введите текст для озвучки..." value="Привет! Это тест системы озвучки Smart Scroll.">
+                            
+                            <div class="test-buttons">
+                                <button class="test-button" onclick="testCustomText()">🔊 Озвучить текст</button>
+                                <button class="test-button" onclick="clearCustomText()">🗑️ Очистить</button>
+                            </div>
+                        </div>
+
+                        <!-- Навигация -->
+                        <div class="test-section">
+                            <h2 class="test-section-title">🧭 Тест навигации</h2>
+                            <p>Протестируйте озвучку навигационных элементов:</p>
+                            
+                            <div class="test-buttons">
+                                <button class="test-button" onclick="testNavigation('Лента')">📰 Лента</button>
+                                <button class="test-button" onclick="testNavigation('Посты')">📝 Посты</button>
+                                <button class="test-button" onclick="testNavigation('Квизы')">🧠 Квизы</button>
+                                <button class="test-button" onclick="testNavigation('Настройки')">⚙️ Настройки</button>
+                                <button class="test-button" onclick="testNavigation('Профиль')">👤 Профиль</button>
+                            </div>
+                        </div>
+
+                        <!-- Управление -->
+                        <div class="test-section">
+                            <h2 class="test-section-title">🎛️ Управление</h2>
+                            
+                            <div class="test-buttons">
+                                <button class="test-button" onclick="stopCurrentAudio()">⏹️ Остановить воспроизведение</button>
+                                <button class="test-button" onclick="clearTTSCache()">🗑️ Очистить кэш</button>
+                                <button class="test-button" onclick="showTTSInfo()">ℹ️ Информация о TTS</button>
+                                <button class="test-button" onclick="window.location.href='settings.html'">⚙️ Настройки</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="navbar__item" onclick="window.location.href='feed.html'">
+                <svg class="navbar__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M4.5 4.5a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h8.25a3 3 0 0 0 3-3v-9a3 3 0 0 0-3-3H4.5ZM19.94 18.75l-2.69-2.69V7.94l2.69-2.69c.944-.945 2.56-.276 2.56 1.06v11.38c0 1.336-1.616 2.005-2.56 1.06Z" />
+                </svg>
+                <span class="navbar__text">Лента</span>
+            </div>
+            <div class="navbar__item" onclick="window.location.href='posts.html'">
+                <svg class="navbar__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4.125 3C3.089 3 2.25 3.84 2.25 4.875V18a3 3 0 0 0 3 3h15a3 3 0 0 1-3-3V4.875C17.25 3.839 16.41 3 15.375 3H4.125ZM12 9.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H12Zm-.75-2.25a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H12a.75.75 0 0 1-.75-.75ZM6 12.75a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H6Zm-.75 3.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0-1.5H6a.75.75 0 0 1-.75-.75ZM6 6.75a.75.75 0 0 0-.75.75v3c0 .414.336.75.75.75h3a.75.75 0 0 0 .75-.75v-3A.75.75 0 0 0 9 6.75H6Z" clip-rule="evenodd" />
+                    <path d="M18.75 6.75h1.875c.621 0 1.125.504 1.125 1.125V18a1.5 1.5 0 0 1-3 0V6.75Z" />
+                </svg>
+                <span class="navbar__text">Посты</span>
+            </div>
+            <div class="navbar__item" onclick="window.location.href='quiz-template.html'">
+                <svg class="navbar__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4.125 3C3.089 3 2.25 3.84 2.25 4.875V18a3 3 0 0 0 3 3h15a3 3 0 0 1-3-3V4.875C17.25 3.839 16.41 3 15.375 3H4.125ZM12 9.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H12Zm-.75-2.25a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H12a.75.75 0 0 1-.75-.75ZM6 12.75a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H6Zm-.75 3.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0-1.5H6a.75.75 0 0 1-.75-.75ZM6 6.75a.75.75 0 0 0-.75.75v3c0 .414.336.75.75.75h3a.75.75 0 0 0 .75-.75v-3A.75.75 0 0 0 9 6.75H6Z" clip-rule="evenodd" />
+                    <path d="M18.75 6.75h1.875c.621 0 1.125.504 1.125 1.125V18a1.5 1.5 0 0 1-3 0V6.75Z" />
+                </svg>
+                <span class="navbar__text">Квизы</span>
+            </div>
+            <div class="navbar__item" onclick="window.location.href='settings.html'">
+                <svg class="navbar__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path fill-rule="evenodd" d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 0 0-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 0 0-2.282.819l-.922 1.597a1.875 1.875 0 0 0 .432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 0 0 0 1.139c.015.2-.059.352-.153.43l-.841.692c-.708.582-.891 1.595-.432 2.385l.922 1.597a1.875 1.875 0 0 0 2.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.570.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 0 0 2.28-.819l.923-1.597a1.875 1.875 0 0 0-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 0 0 0-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.892-1.595.432-2.385l-.922-1.597a1.875 1.875 0 0 0-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 0 0-.985-.57c-.183-.087-.277-.227-.297-.348L13.928 3.817c-.151-.904-.933-1.567-1.85-1.567h-1.844ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z" clip-rule="evenodd" />
+                </svg>
+                <span class="navbar__text">Настройки</span>
+            </div>
+            <div class="navbar__item navbar__item--active" onclick="window.location.href='profile.html'">
+                <svg class="navbar__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.25 6.75a3.75 3.75 0 1 1 7.5 0 3.75 3.75 0 0 1-7.5 0ZM15.75 9.75a3 3 0 1 1 6 0 3 3 0 0 1-6 0ZM2.25 9.75a3 3 0 1 1 6 0 3 3 0 0 1-6 0ZM6.31 15.117A6.745 6.745 0 0 1 12 12a6.745 6.745 0 0 1 6.709 7.498.75.75 0 0 1-.372.568A12.696 12.696 0 0 1 12 21.75c-2.305 0-4.47-.612-6.337-1.684a.75.75 0 0 1-.372-.568 6.787 6.787 0 0 1 1.019-4.38Z" clip-rule="evenodd" />
+                    <path d="M5.082 14.254a8.287 8.287 0 0 0-1.308 5.135 9.687 9.687 0 0 1-1.764-.44l-.115-.04a.563.563 0 0 1-.373-.487l-.01-.121a3.75 3.75 0 0 1 3.57-4.047ZM20.226 19.389a8.287 8.287 0 0 0-1.308-5.135 3.75 3.75 0 0 1 3.57 4.047l-.01.121a.563.563 0 0 1-.373.486l-.115.04c-.567.2-1.156.349-1.764.441Z" />
+                </svg>
+                <span class="navbar__text">Профиль</span>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Уведомления -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Функции тестирования TTS
+        function checkTTSStatus() {
+            if (window.TTSService && typeof window.TTSService.getStatus === 'function') {
+                const status = window.TTSService.getStatus();
+                
+                document.getElementById('ttsStatus').textContent = status.enabled ? 'Включена' : 'Отключена';
+                
+                // Показываем статус сервера или встроенного TTS
+                if (status.builtInTTSAvailable) {
+                    document.getElementById('serverStatus').textContent = 'Встроенный TTS';
+                } else if (status.serverAvailable) {
+                    document.getElementById('serverStatus').textContent = 'Сервер доступен';
+                } else {
+                    document.getElementById('serverStatus').textContent = 'Недоступен';
+                }
+                
+                document.getElementById('initStatus').textContent = status.initialized ? 'Готов' : 'Не готов';
+                
+                // Обновляем индикатор
+                const indicator = document.getElementById('statusIndicator');
+                if (status.enabled && (status.serverAvailable || status.builtInTTSAvailable)) {
+                    indicator.className = 'status-indicator status-online';
+                } else if (!status.serverAvailable && !status.builtInTTSAvailable) {
+                    indicator.className = 'status-indicator status-offline';
+                } else {
+                    indicator.className = 'status-indicator status-unknown';
+                }
+                
+                showNotification('Статус TTS обновлен', 'info');
+            } else {
+                showNotification('TTS Service не загружен или не инициализирован', 'error');
+                console.error('TTS Service:', window.TTSService);
+            }
+        }
+
+        function enableTTS() {
+            if (window.TTSService && typeof window.TTSService.enableTTS === 'function') {
+                const success = window.TTSService.enableTTS();
+                if (success) {
+                    showNotification('TTS включен!', 'success');
+                    checkTTSStatus();
+                } else {
+                    showNotification('Не удалось включить TTS', 'error');
+                }
+            } else {
+                showNotification('TTS Service не загружен или не инициализирован', 'error');
+            }
+        }
+
+        function disableTTS() {
+            if (window.TTSService && typeof window.TTSService.disableTTS === 'function') {
+                window.TTSService.disableTTS();
+                showNotification('TTS отключен', 'info');
+                checkTTSStatus();
+            } else {
+                showNotification('TTS Service не загружен или не инициализирован', 'error');
+            }
+        }
+
+        function testButtonClick(button) {
+            const text = button.textContent;
+            if (window.TTSService && typeof window.TTSService.speakText === 'function') {
+                window.TTSService.speakText(text);
+                showNotification(`Озвучка: "${text}"`, 'info');
+            } else {
+                showNotification('TTS Service не загружен или не инициализирован', 'error');
+            }
+        }
+
+        function testTextClick(element) {
+            const text = element.textContent.trim();
+            if (window.TTSService) {
+                window.TTSService.speakText(text);
+                showNotification(`Озвучка текста`, 'info');
+            } else {
+                showNotification('TTS Service не загружен', 'error');
+            }
+        }
+
+        function testCustomText() {
+            const text = document.getElementById('customText').value.trim();
+            if (text && window.TTSService) {
+                window.TTSService.speakText(text);
+                showNotification('Пользовательский текст озвучен', 'success');
+            } else if (!text) {
+                showNotification('Введите текст для озвучки', 'warning');
+            } else {
+                showNotification('TTS Service не загружен', 'error');
+            }
+        }
+
+        function clearCustomText() {
+            document.getElementById('customText').value = '';
+            showNotification('Текст очищен', 'info');
+        }
+
+        function testNavigation(page) {
+            if (window.TTSService) {
+                window.TTSService.speakText(`Переход к ${page}`);
+                showNotification(`Навигация: ${page}`, 'info');
+            } else {
+                showNotification('TTS Service не загружен', 'error');
+            }
+        }
+
+        function stopCurrentAudio() {
+            if (window.TTSService) {
+                window.TTSService.stopCurrentAudio();
+                showNotification('Воспроизведение остановлено', 'info');
+            }
+        }
+
+        function clearTTSCache() {
+            if (window.TTSService) {
+                window.TTSService.clearCache();
+                showNotification('Кэш TTS очищен', 'info');
+            }
+        }
+
+        function showTTSInfo() {
+            if (window.TTSService) {
+                const status = window.TTSService.getStatus();
+                const info = `
+TTS Service Info:
+- Включен: ${status.enabled ? 'Да' : 'Нет'}
+- Сервер: ${status.serverAvailable ? 'Доступен' : 'Недоступен'}
+- Инициализирован: ${status.initialized ? 'Да' : 'Нет'}
+- URL сервера: http://localhost:5001
+                `.trim();
+                
+                alert(info);
+                showNotification('Информация о TTS показана', 'info');
+            } else {
+                showNotification('TTS Service не загружен', 'error');
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🧪 TTS Test страница загружена');
+            
+            // Проверяем статус TTS через 1 секунду
+            setTimeout(() => {
+                checkTTSStatus();
+            }, 1000);
+            
+            // Обновляем статус каждые 10 секунд
+            setInterval(checkTTSStatus, 10000);
+        });
+    </script>
+    
+    <!-- Единый навбар -->
+    <div id="unified-navbar-container"></div>
+    
+    <!-- Загрузка единого навбара -->
+    <script>
+        // Загружаем единый навбар
+        fetch('unified-navbar.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('unified-navbar-container').innerHTML = html;
+                // Инициализируем навбар после загрузки
+                if (window.initializeNavbar) {
+                    window.initializeNavbar();
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки единого навбара:', error);
+            });
+    </script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Scroll - Регистрация</title>
+    <link rel="stylesheet" href="template-styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
+    
+    <!-- Единая навигация -->
+    <link rel="stylesheet" href="unified-navbar.css">
+    <script src="unified-navbar.js"></script>
+    
+    <!-- Мониторинг яркости экрана -->
+    <script src="brightness-monitor.js"></script>
+    
+    <!-- Auth system -->
+    <script src="auth-script.js"></script>
+    
+    <!-- Smart Currency System -->
+        <!-- Button Audio System -->
+    <script src="button-audio.js"></script>
+<script src="smart-currency.js"></script>
+
+<body>
+    <div class="page">
+        <!-- Единый навбар -->
+        <div id="unified-navbar-container"></div>
+
+        <!-- Main Content -->
+        <main class="main">
+            <div class="content">
+                <!-- Main Content Area -->
+                <div class="main-content">
+                    <div class="content-card">
+                        <div class="content-card__header">
+                            <h2 class="content-card__title">Создать аккаунт</h2>
+                        </div>
+                        <div class="content-card__body">
+                            <form class="auth-form" id="registerForm">
+                                <div class="form-group">
+                                    <label for="username" class="form-label">Никнейм</label>
+                                    <input type="text" id="username" name="username" class="form-input" placeholder="Введите никнейм" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" id="email" name="email" class="form-input" placeholder="Введите email" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="password" class="form-label">Пароль</label>
+                                    <input type="password" id="password" name="password" class="form-input" placeholder="Введите пароль" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="confirmPassword" class="form-label">Подтвердите пароль</label>
+                                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" placeholder="Подтвердите пароль" required>
+                                </div>
+                                
+                                <button type="submit" class="auth-button">Зарегистрироваться</button>
+                            </form>
+                            
+                            <div class="auth-links">
+                                <p>Уже есть аккаунт? <a href="login.html" class="auth-link">Войти</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Загрузка единого навбара -->
+    <script>
+        // Загружаем единый навбар
+        fetch('unified-navbar.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('unified-navbar-container').innerHTML = html;
+                // Инициализируем навбар после загрузки
+                if (window.initializeNavbar) {
+                    window.initializeNavbar();
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки единого навбара:', error);
+            });
+    </script>
+</body>
+</html>

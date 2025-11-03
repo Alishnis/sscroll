@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест озвучки кнопок</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        
+        .test-section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .status {
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .controls {
+            margin: 20px 0;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #555;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #667eea;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body>
+    <h1>🔊 Тест озвучки кнопок</h1>
+    
+    <div class="test-section">
+        <h2>Настройки</h2>
+        <div class="controls">
+            <label for="audioEnabled">Озвучка кнопок:</label>
+            <label class="toggle-switch">
+                <input type="checkbox" id="audioEnabled">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        <div id="status" class="status">Статус: Проверка...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Тестовые кнопки</h2>
+        <button class="btn" onclick="testButton('Кнопка 1')">Кнопка 1</button>
+        <button class="btn" onclick="testButton('Сохранить')">Сохранить</button>
+        <button class="btn" onclick="testButton('Отмена')">Отмена</button>
+        <button class="btn" onclick="testButton('Настройки')">Настройки</button>
+        <button class="btn" onclick="testButton('Применить')">Применить</button>
+        <button class="btn" onclick="testButton('Удалить')">Удалить</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Логи</h2>
+        <div id="logs" style="background: #000; padding: 10px; border-radius: 5px; height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px;"></div>
+    </div>
+
+    <!-- Button Audio System -->
+    <script src="button-audio.js"></script>
+    
+    <script>
+        let audioEnabled = false;
+        
+        function log(message) {
+            const logs = document.getElementById('logs');
+            const time = new Date().toLocaleTimeString();
+            logs.innerHTML += `[${time}] ${message}<br>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+        
+        function updateStatus() {
+            const status = document.getElementById('status');
+            if (audioEnabled) {
+                status.textContent = 'Статус: ✅ Озвучка включена';
+                status.style.color = '#2ed573';
+            } else {
+                status.textContent = 'Статус: ❌ Озвучка отключена';
+                status.style.color = '#ff4757';
+            }
+        }
+        
+        function testButton(text) {
+            log(`🔊 Тестируем кнопку: "${text}"`);
+            
+            if (audioEnabled && window.ButtonAudio) {
+                log('🎤 Отправляем запрос на озвучку...');
+                window.ButtonAudio.speakText(text);
+            } else {
+                log('❌ Озвучка отключена или система недоступна');
+            }
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Инициализация тестовой страницы...');
+            
+            // Проверяем доступность ButtonAudio
+            if (window.ButtonAudio) {
+                log('✅ ButtonAudio система найдена');
+                audioEnabled = window.ButtonAudio.isEnabled();
+                log(`📊 Статус озвучки: ${audioEnabled ? 'Включена' : 'Отключена'}`);
+            } else {
+                log('❌ ButtonAudio система не найдена');
+            }
+            
+            updateStatus();
+            
+            // Обработчик переключателя
+            document.getElementById('audioEnabled').addEventListener('change', function() {
+                audioEnabled = this.checked;
+                log(`🔄 Озвучка ${audioEnabled ? 'включена' : 'отключена'}`);
+                
+                if (window.ButtonAudio) {
+                    if (audioEnabled) {
+                        window.ButtonAudio.enable();
+                    } else {
+                        window.ButtonAudio.disable();
+                    }
+                }
+                
+                updateStatus();
+            });
+            
+            // Устанавливаем начальное состояние
+            document.getElementById('audioEnabled').checked = audioEnabled;
+            
+            log('✅ Тестовая страница готова к работе');
+        });
+    </script>
+</body>
+</html>
